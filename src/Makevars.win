@@ -1,0 +1,7 @@
+PKG_CPPFLAGS= -D_R_=1 -DUSE_R=1 -I"$(LIB_SBML)/include"
+
+PKG_LIBS = -L"$(LIB_SBML)/bin" -lsbml
+
+all: $(SHLIB)
+	mkdir -p "$(R_PACKAGE_DIR)/libs$(R_ARCH)"
+	cp "$(LIB_SBML)/bin/libsbml.dll" "$(R_PACKAGE_DIR)\libs$(R_ARCH)"

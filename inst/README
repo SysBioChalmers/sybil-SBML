@@ -1,0 +1,4 @@
+GNU R package sybilSBML: Link to libSBML for sybil
+
+The package sybilSBML requires a working installation of libSBML (>= 5.6.0)
+(in particular libraries and header files).
