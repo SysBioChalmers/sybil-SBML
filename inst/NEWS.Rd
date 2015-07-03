@@ -7,6 +7,13 @@
 \newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
 
 % ---------------------------------------------------------------------------- %
+\section{Changes in version 2.0.9 2015-07-03}{
+  \itemize{
+    \item Changed Maintainer.
+  }
+}
+
+% ---------------------------------------------------------------------------- %
 \section{Changes in version 2.0.8 2014-05-21}{
   \itemize{
     \item function \code{openSBMLfile} does a \code{normalizePath} on its
