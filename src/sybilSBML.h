@@ -63,6 +63,9 @@ SEXP getSBMLlevel(SEXP sbmldoc);
 /* get sbml document version */
 SEXP getSBMLversion(SEXP sbmldoc);
 
+/* get sbml document FBC version */
+SEXP getSBMLFbcversion(SEXP sbmldoc);
+
 /* validate SBML document */
 SEXP validateDocument(SEXP sbmldoc);
 
@@ -77,6 +80,12 @@ SEXP getSBMLmodId(SEXP sbmlmod);
 
 /* get model name */
 SEXP getSBMLmodName(SEXP sbmlmod);
+
+/* get model notes */
+SEXP getSBMLmodNotes(SEXP sbmlmod);
+
+/* get model annotation */
+SEXP getSBMLmodAnnotation(SEXP sbmlmod);
 
 /* get number of compartments */
 SEXP getSBMLnumCompart(SEXP sbmlmod);
@@ -98,3 +107,7 @@ SEXP getSBMLSpeciesList(SEXP sbmlmod);
 
 /* get list of reactions */
 SEXP getSBMLReactionsList(SEXP sbmlmod);
+
+/* export Modelorg to SBML*/
+SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybil_max, SEXP mod_desc, SEXP mod_name, SEXP mod_compart, SEXP met_id, SEXP met_name, SEXP met_comp, SEXP met_form,SEXP met_charge, SEXP react_id, SEXP react_name, SEXP react_rev, SEXP lowbnd, SEXP uppbnd, SEXP obj_coef, SEXP subSys, SEXP gpr, SEXP SMatrix, SEXP mod_notes, SEXP mod_anno, SEXP com_notes , SEXP com_anno, SEXP met_notes, SEXP met_anno, SEXP met_bnd , SEXP react_notes, SEXP react_anno, SEXP ex_react, SEXP allgenes);
+  

@@ -247,7 +247,13 @@ parseNotesReact <- function(notes) {
           gpr <- sub("GENE[_ ]?ASSOCIATION: *", "", fields_str[j])
           gene_rule <- sybil:::.parseBoolean(gpr)
           #print(gene_rule)
-      }
+    
+      }#Ardalan Habil
+      else if (grepl("GPR[_ ]?ASSOCIATION", fields_str[j])) {
+        gpr <- sub("GPR[_ ]?ASSOCIATION: *", "", fields_str[j])
+        gene_rule <- sybil:::.parseBoolean(gpr)
+      }  
+
       if (charmatch("SUBSYSTEM", fields_str[j], nomatch = -1) != -1) {
           subSyst <- sub("SUBSYSTEM: *", "", fields_str[j])
           subSyst <- sub("^S_", "", subSyst, perl = TRUE)
@@ -283,6 +289,14 @@ sbmldoc <- openSBMLfile(filename)
 
 message("OK")
 
+# warning if new Version/Level/
+SBMLlevel<- getSBMLlevel(sbmldoc)
+SBMLversion<- getSBMLversion(sbmldoc)
+FBCversion<-getSBMLFbcversion(sbmldoc)
+if(SBMLlevel == 3 && SBMLversion > 1)
+  warning(paste("No support for Level 3 Version ",SBMLversion))
+if (FBCversion > 2)
+  warning(paste("No support for Fbc Version ",FBCversion))
 
 #------------------------------------------------------------------------------#
 #                              check the model                                 #
@@ -380,6 +394,7 @@ if (mdesc == filename) {
 sybil::mod_desc(mod) <- mdesc
 
 
+
 #------------------------------------------------------------------------------#
 #                                   units                                      #
 #------------------------------------------------------------------------------#
@@ -429,6 +444,7 @@ if (is.null(metabolitesList)) {
 missingId(metabolitesList)
 metSpIds        <- metabolitesList[["id"]]
 #nummet          <- getSBMLnumSpecies(sbmlmod)
+
 
 if (isTRUE(bndCond)) {
     metSpBnd <- metabolitesList[["boundaryCondition"]]
@@ -485,12 +501,20 @@ gpr      <- character(numreact)
 hasNotes <- FALSE
 hasAnnot <- FALSE
 
+#FBC contraints @Ardalan Habil
+fbclowbnd<-reactionsList[["fbc_lowbnd"]]
+fbcuppbnd<-reactionsList[["fbc_uppbnd"]]
+fbcgprRules<-reactionsList[["fbc_gprRules"]]
+fbcObjectives<-reactionsList[["fbc_Objectives"]]
+
 for (i in 1 : numreact) {
 
     # the notes/annotations field
     notes <- reactionsList[["notes"]][i]
     annot <- reactionsList[["annotation"]][i]
-
+    
+    # Notes und Annotation can be null ( @Ardalan Habil)
+    if(!is.null( reactionsList[["notes"]])) 				
     if (nchar(notes) > 0) {
 
         hasNotes    <- TRUE
@@ -504,7 +528,7 @@ for (i in 1 : numreact) {
 
     }
     else {
-
+	 if(!is.null( reactionsList[["annotation"]]))	
         if (nchar(annot) > 0) {
             hasAnnot    <- TRUE
             pn <- regexpr("Pathway Name: [^<]+", annot, perl = TRUE)
@@ -512,7 +536,18 @@ for (i in 1 : numreact) {
         }
 
     }
+     
+    	
 
+    fbcgene_rule <- NA
+    if ( !is.null(fbcgprRules))
+    { 
+      fbcgene_rule<- sybil:::.parseBoolean(fbcgprRules[i])
+      
+      genes[[i]]  <- fbcgene_rule$gene      # list of genes
+      rules[i]    <- fbcgene_rule$rule       # rules
+      gpr[i]      <- fbcgprRules[i]  
+    }	
 
     # Check here if reactants and products lists exist, same for the stoichiometry slot
 
@@ -565,6 +600,16 @@ for (i in 1 : numreact) {
 #    }
 
     # the constraints
+  
+  #FBC contraints @Ardalan Habil
+  if ( !is.null(fbclowbnd) &&  !is.null(fbcuppbnd))
+  {
+    lbnd[i] <- checkupplowbnd(fbclowbnd[i])
+    ubnd[i] <- checkupplowbnd(fbcuppbnd[i])
+  }
+  #read from kinetic_law if fbc is empty 		
+  else
+  {
     parm <- reactionsList[["kinetic_law"]][[i]]
     if (is.null(parm)) {
         ubnd[i] <- def_bnd
@@ -591,9 +636,15 @@ for (i in 1 : numreact) {
             # reduced cost?  (sbml file)
         }
     }
-
+  }
+  #FBC Objective @Ardalan Habil
+    if(!is.null(fbcObjectives))
+    {
+      ocof[i]<-as.numeric(fbcObjectives[i])
+    }  
+    
+    
 }
-
 
 # ---------------------------------------------------------------------------- #
 # search for unused metabolites and unused reactions
@@ -877,7 +928,7 @@ else {
     rules  <- rules[SKIP_REACTION]
     gpr    <- gpr[SKIP_REACTION]
 
-    if (isTRUE(hasNotes)) {
+    if (isTRUE(hasNotes) ||  !is.null(fbcgprRules) ) {
         message("GPR mapping ... ", appendLF = FALSE)
 
         #allGenes <- unique(allGenes)
@@ -970,6 +1021,56 @@ sybil::react_name(mod) <- react_name_tmp
 
 
 #------------------------------------------------------------------------------#
+#                             Reaction Attr  @Ardalan                          #
+#------------------------------------------------------------------------------#
+# Test for new Slots
+if( .hasSlot(mod,"mod_attr") &&  .hasSlot(mod,"comp_attr") &&  .hasSlot(mod,"met_attr")  &&  .hasSlot(mod,"react_attr") )
+  newSybil<-TRUE
+else newSybil<-FALSE
+
+numreact<-nummet <- sum(SKIP_REACTION)
+reactannotation <- reactionsList[["annotation"]][SKIP_REACTION]
+reactnotes <- reactionsList[["notes"]][SKIP_REACTION]
+if(newSybil)
+{  
+  sybil::react_attr(mod)  <-data.frame(row.names=1:numreact)
+  #Speed optimierung durch notes NULL falls nichts drin steht
+  
+  if( !is.null(reactannotation) && length(reactannotation)==numreact  )sybil::react_attr(mod)[['annotation']]<-reactannotation
+  if( !is.null(reactnotes) && length(reactnotes)==numreact  )sybil::react_attr(mod)[['notes']]<-reactnotes
+}
+
+
+#------------------------------------------------------------------------------#
+#                         Model Attr @Ardalan                                  #
+#------------------------------------------------------------------------------#
+
+modanno<-getSBMLmodAnnotation(sbmlmod)
+modnotes<-getSBMLmodNotes(sbmlmod)
+if(newSybil)
+{
+  sybil::mod_attr(mod)  <-data.frame(row.names=1)
+  if(nchar(modanno)>1)sybil::mod_attr(mod)[['annotation']]<-modanno
+  if(nchar(modnotes)>1)sybil::mod_attr(mod)[['notes']]<-modnotes
+  
+}  
+
+#------------------------------------------------------------------------------#
+#                         compartments Attr @Ardalan                           #
+#------------------------------------------------------------------------------#
+
+numcom<-length(mod_compart(mod))
+comannotation <- compartmentsList[["annotation"]]
+comnotes <- compartmentsList[["notes"]]
+if(newSybil)
+{ 
+sybil::comp_attr(mod)  <-data.frame(row.names=1:numcom)
+if( !is.null(comannotation) && length(comannotation)==numcom   )sybil::comp_attr(mod)[['annotation']]<-comannotation
+if( !is.null(comnotes) && length(comnotes)==numcom  )sybil::comp_attr(mod)[['notes']]<-comnotes
+
+}
+
+#------------------------------------------------------------------------------#
 #                             metabolite id's                                  #
 #------------------------------------------------------------------------------#
 
@@ -1000,6 +1101,67 @@ met_name_tmp   <- sub("-$",       "",  met_name_tmp)
 met_name_tmp   <- sub( "\\s+$",   "",  met_name_tmp, perl = TRUE)
 sybil::met_name(mod) <- met_name_tmp
 
+
+#------------------------------------------------------------------------------#
+#                             metabolite attr @Ardalan Habil                   #
+#------------------------------------------------------------------------------#
+
+#ChemicalFormula Charge Notes Annotation MetaID @Ardalan Habil
+
+metformula   <- metabolitesList[["chemicalFormula"]][met_id_pos][SKIP_METABOLITE]
+metcharge    <- metabolitesList[["charge"]][met_id_pos][SKIP_METABOLITE]
+
+metnotes <- metabolitesList[["notes"]][met_id_pos][SKIP_METABOLITE]
+metannotation <-   metabolitesList[["annotation"]][met_id_pos][SKIP_METABOLITE]
+
+
+metchargenote<-NULL
+metformulanote<-NULL
+# check metnotes for Formula and Charge
+if( !is.null(metnotes) && length(metnotes==nummet))
+{
+  pn <- regexpr("FORMULA: [^<]+", metnotes, perl = TRUE)
+  metformulanote <- substr(metnotes, (pn+9), pn + ((attr(pn, "match.length"))-1))
+  pn <- regexpr("CHARGE: [^<]+", metnotes, perl = TRUE)
+  metchargenote <- substr(metnotes, (pn+8), pn + ((attr(pn, "match.length"))-1))
+  metchargenote <- as.integer(metchargenote)
+  metchargenote[is.na(metchargenote)] <- 0
+}
+
+
+nummet <- sum(SKIP_METABOLITE)
+if(newSybil)
+{ 
+  # save attributes to met_attr slot
+  sybil::met_attr(mod)  <-data.frame(row.names=1:nummet)
+  if( !is.null(metformula) && length(metformula)==nummet)
+  {sybil::met_attr(mod)[['chemicalFormula']]<-metformula}
+  else{
+    if(length(metformulanote)==nummet)
+    { if(max(nchar(metformulanote)) >0)
+      sybil::met_attr(mod)[['chemicalFormula']]<-metformulanote 
+    }  
+  }
+  if( !is.null(metcharge) && length(metcharge)==nummet && sum(metcharge)!=0)
+  {sybil::met_attr(mod)[['charge']]<-metcharge}
+  else{
+    if(  length(metchargenote)==nummet)
+    {  if(max(nchar(metchargenote)) >0)
+      sybil::met_attr(mod)[['charge']]<-metchargenote 
+    }  
+  }
+  if( !is.null(metnotes) && length(metnotes)==nummet)sybil::met_attr(mod)[['notes']]<-metnotes 
+  if( !is.null(metannotation) && length(metannotation)==nummet)sybil::met_attr(mod)[['annotation']]<-metannotation
+  
+  # Save boundaryCondition when bndCond=FALSE
+  if (!isTRUE(bndCond)) {
+    metBnd <- metabolitesList[["boundaryCondition"]][met_id_pos][SKIP_METABOLITE]
+    # When all metBnd = False -> metabolite removed by extMetFlag
+    if( !is.null(metBnd) && length(metBnd)==nummet && !all(metBnd == FALSE) )sybil::met_attr(mod)[['boundaryCondition']]<-metBnd
+  }
+  
+  
+}
 
 #------------------------------------------------------------------------------#
 #                             check reversibilities                            #

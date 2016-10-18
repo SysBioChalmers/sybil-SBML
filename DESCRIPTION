@@ -14,7 +14,7 @@ License: GPL-3 | file LICENSE
 LazyLoad: yes
 Collate: generics.R sbmlPtrClass.R sbmlErrorClass.R sybilSBML.R
         uglyHack.R readSBMLmod.R zzz.R
-Packaged: 2014-05-21 07:11:55 UTC; gabriel
+Packaged: 2016-10-18 13:31:19 UTC; ardalan
 Author: C. Jonathan Fritzemeier [cre, ctb],
   Gabriel Gelius-Dietrich [aut],
   Deya Alzoubi [ctb]

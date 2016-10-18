@@ -48,5 +48,9 @@ getSBMLunitDefinitionsList,
 getSBMLCompartList,
 getSBMLSpeciesList,
 getSBMLReactionsList,
-readSBMLmod
+readSBMLmod,
+exportSBML,
+getSBMLFbcversion,
+getSBMLmodNotes,
+getSBMLmodAnnotation
 )
