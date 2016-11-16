@@ -1576,8 +1576,8 @@ void ParseModtoAnno  (SBase_t* comp , char* Mannocopy)
     
     if(strncmp("bqbiol", ptr, strlen("bqbiol")) == 0)
     {
-      if (first != 0) SBase_addCVTerm((SBase_t*)comp, cv);
-      
+      if (first != 0){ SBase_addCVTerm((SBase_t*)comp, cv);CVTerm_free(cv);}
+      //CVTerm_free(cv);
       quali  = strcpy(&ptr[0],&ptr[7]);
       cv = CVTerm_createWithQualifierType(BIOLOGICAL_QUALIFIER);
       CVTerm_setBiologicalQualifierTypeByString( cv, (const char*) quali); 
@@ -1585,7 +1585,8 @@ void ParseModtoAnno  (SBase_t* comp , char* Mannocopy)
     }
     else  if(strncmp("bqmodel", ptr, strlen("bqmodel")) == 0)
     {
-      if (first != 0) SBase_addCVTerm((SBase_t*)comp, cv);
+      if (first != 0) { SBase_addCVTerm((SBase_t*)comp, cv);CVTerm_free(cv);}
+      //CVTerm_free(cv);
       quali  = strcpy(&ptr[0],&ptr[8]);
       cv = CVTerm_createWithQualifierType(MODEL_QUALIFIER);
       CVTerm_setModelQualifierTypeByString( cv, (const char*) quali); 
