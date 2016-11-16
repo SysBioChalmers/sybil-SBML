@@ -1227,6 +1227,7 @@ SEXP getSBMLReactionsList(SEXP sbmlmod) {
     double Objcoeff =0;
     const char* Objreaction = NULL;
     char* objActiv = NULL;
+    int fbcversion = 0;
     
     /* FBC OBJECTIV @Ardalan*/
     Objective_t * objective;
@@ -1266,6 +1267,11 @@ SEXP getSBMLReactionsList(SEXP sbmlmod) {
         
       }
       
+      
+      /* is FBC 1 */
+      
+      if(strcmp("fbc",SBasePlugin_getPackageName(modelPlug) ) ==0)
+        fbcversion = SBasePlugin_getPackageVersion(modelPlug);
     }  
     
     
@@ -1346,6 +1352,65 @@ SEXP getSBMLReactionsList(SEXP sbmlmod) {
         REAL(fbcup)[i] = 0;
       }
       
+      /*FBC 1 read */
+      if (fbcversion==1)
+      {
+        /* Storing FBC1Bounds */
+        double fbc1lb=0;
+        double fbc1up=0;
+        
+        
+        int fluxb=0;
+        for(fluxb; fluxb< FbcModelPlugin_getNumFluxBounds(modelPlug);fluxb++)
+        {
+          FluxBound_t * currentFlux = FbcModelPlugin_getFluxBound(modelPlug,fluxb);
+          
+          const char * currentFluxType ;
+          const char * currentFluxReaction; 
+          
+          if (FluxBound_isSetReaction(currentFlux))  currentFluxReaction = FluxBound_getReaction(currentFlux);
+          else continue;
+          
+          if(strcmp(currentFluxReaction , Reaction_getId(relel) ) !=0) continue;
+          
+          
+          if (FluxBound_isSetOperation(currentFlux)) currentFluxType = FluxBound_getOperation(currentFlux);
+          else continue;  
+          
+          
+          if(strcmp("greaterEqual" , currentFluxType ) ==0)
+          {
+            lbcount=lbcount+1;
+            if (FluxBound_isSetValue(currentFlux))  fbc1lb = FluxBound_getValue(currentFlux);
+            else continue;
+          }  
+          
+          else if(strcmp("lessEqual" , currentFluxType ) ==0)
+          { 
+            upcount=upcount+1;
+            if (FluxBound_isSetValue(currentFlux))  fbc1up = FluxBound_getValue(currentFlux);
+            else continue;
+          }  
+          
+          else if(strcmp("equal" , currentFluxType ) ==0)  
+          {
+            if (FluxBound_isSetValue(currentFlux))
+            {
+              lbcount=lbcount+1;
+              upcount=upcount+1;
+              fbc1lb = FluxBound_getValue(currentFlux); 
+              fbc1up = FluxBound_getValue(currentFlux);
+            }
+            else continue;
+          }
+          
+        }  
+        
+        /* FBC 1 save Bounds */
+        REAL(fbclb)[i] = fbc1lb;
+        REAL(fbcup)[i] = fbc1up;
+        
+      }
       
       
       /* FBC GENE */
@@ -1539,27 +1604,6 @@ void ParseModtoAnno  (SBase_t* comp , char* Mannocopy)
 
 
 
-
-int writeExampleSBML(SBMLDocument_t* sbmlDoc, const char* filename)
-{
-  int SBMLok =0;
-  // SBMLok  = validateSBML(sbmlDoc);
-  int result = writeSBML(sbmlDoc, filename);
-  
-  if (result)
-  {
-    printf("Wrote file \"%s\"\n", filename);
-    
-    return 1;
-  }
-  else
-  {
-    fprintf(stderr, "Failed to write \"%s\"\n", filename );
-    return 0;
-  }
-}
-
-
 SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybil_max, SEXP mod_desc, SEXP mod_name, SEXP mod_compart, SEXP met_id, SEXP met_name, SEXP met_comp, SEXP met_form,SEXP met_charge, SEXP react_id, SEXP react_name, SEXP react_rev, SEXP lowbnd, SEXP uppbnd, SEXP obj_coef, SEXP subSys, SEXP gpr, SEXP SMatrix, SEXP mod_notes, SEXP mod_anno, SEXP com_notes , SEXP com_anno, SEXP met_notes, SEXP met_anno, SEXP met_bnd , SEXP react_notes, SEXP react_anno, SEXP ex_react, SEXP allgenes)
 {
   //Varaibles from R
@@ -1707,7 +1751,26 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
   *
   *---------------------------------------------------------------------------*/
   
-  //TO-DO
+  unitdef = Model_createUnitDefinition(model);
+  UnitDefinition_setId(unitdef,"litre_per_mole_per_second");
+  
+  /*  Creates an Unit inside the UnitDefinition object ("litre_per_mole_per_second") */
+  
+  unit = UnitDefinition_createUnit(unitdef);
+  Unit_setKind(unit,UNIT_KIND_MOLE);
+  Unit_setExponent(unit,-1);
+  
+  /*  Creates an Unit inside the UnitDefinition object ("litre_per_mole_per_second") */
+  
+  unit = UnitDefinition_createUnit(unitdef);
+  Unit_setKind(unit,UNIT_KIND_LITRE);
+  Unit_setExponent(unit,1);
+  
+  /*  Creates an Unit inside the UnitDefinition object ("litre_per_mole_per_second") */
+  
+  unit = UnitDefinition_createUnit(unitdef);
+  Unit_setKind(unit,UNIT_KIND_SECOND);
+  Unit_setExponent(unit,-1);
   
   
   
@@ -1716,8 +1779,7 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
   * Creates a Compartment object inside the Model object. 
   *
   *---------------------------------------------------------------------------*/
-  //compSymbolList = {'c','m','v','x','e','t','g','r','n','p'};
-  //compNameList = {'Cytosol','Mitochondria','Vacuole','Peroxisome','Extra-organism','Pool','Golgi Apparatus','Endoplasmic Reticulum','Nucleus','Periplasm'};
+  
   const char *sName;
   int i;
   int hasBoundary=0;
@@ -1761,6 +1823,7 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
   comp = Model_createCompartment(model);
   Compartment_setId(comp,"BOUNDARY");
   Compartment_setConstant(comp,1);
+  hasBoundary=1;
   }
   /*---------------------------------------------------------------------------
   *
@@ -1897,22 +1960,24 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
     Parameter_setId(para, "default_lb");
     Parameter_setConstant(para, 1);
     Parameter_setValue(para, sybilmin);
+    SBase_setSBOTerm((SBase_t *)para,626);
     
     para = Model_createParameter(model);
     Parameter_setId(para, "default_ub");
     Parameter_setConstant(para, 1);
     Parameter_setValue(para, sybilmax);
+    SBase_setSBOTerm((SBase_t *)para,626);
     
     para = Model_createParameter(model);
     Parameter_setId(para, "default_0");
     Parameter_setConstant(para, 1);
     Parameter_setValue(para, 0);
-    
-    
-    
-    // char *genString = malloc( 1000 );
+    SBase_setSBOTerm((SBase_t *)para,626);
+
   }
-  char *subString = malloc( 1000 );
+  
+  
+  // LOOP FOR REACTION
   for (i=0; i<LENGTH(react_name); i++)
   {
     reaction = Model_createReaction(model);
@@ -1951,28 +2016,30 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
       
     } 
     else
-    { if(SBMLfbcversion == 0)
-    {
-      if (!Rf_isNull(gpr) && Rf_length(gpr) > 1)
-      {  
-        notesString = append_strings(notesString,"<html:p>GENE_ASSOCIATION: ","");
-        notesString =append_strings(notesString,CHAR(STRING_ELT(gpr, i)),"");
-        notesString =append_strings(notesString," </html:p>","");
+    { 
+      if(SBMLfbcversion == 0)
+      {
+        if (!Rf_isNull(gpr) && Rf_length(gpr) > 1)
+        {  
+          notesString = append_strings(notesString,"<html:p>GENE_ASSOCIATION: ","");
+          notesString =append_strings(notesString,CHAR(STRING_ELT(gpr, i)),"");
+          notesString =append_strings(notesString," </html:p>","");
+        }
+        if (!Rf_isNull(subSys) && Rf_length(subSys) > 1)
+        {  
+          notesString = append_strings(notesString,"<html:p>SUBSYSTEM: ","");
+          notesString =append_strings(notesString,CHAR(STRING_ELT(subSys, i)),"");
+          notesString =append_strings(notesString," </html:p>","");
+        }
+        
+        SBase_setNotesString((SBase_t*)reaction, notesString);
       }
-      if (!Rf_isNull(subSys) && Rf_length(subSys) > 1)
-      {  
-        notesString = append_strings(notesString,"<html:p>SUBSYSTEM: ","");
-        notesString =append_strings(notesString,CHAR(STRING_ELT(subSys, i)),"");
-        notesString =append_strings(notesString," </html:p>","");
-      }
-      //sprintf(subString,"<html:p>GENE_ASSOCIATION: %s </html:p><html:p>SUBSYSTEM: %s </html:p>", CHAR(STRING_ELT(gpr, i)) , CHAR(STRING_ELT(subSys, i)));
-      SBase_setNotesString((SBase_t*)reaction, notesString);
-    }
     }
     
     const double *lower_bnd = REAL(lowbnd);
     const double *upper_bnd = REAL(uppbnd);
     
+    // KineticLaw
     if(SBMLfbcversion == 0)
     {  
       kl = Reaction_createKineticLaw(reaction);
@@ -2002,24 +2069,7 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
       Parameter_setValue( para, 0);
     }
     
-    //NOTES
-    
-    /* 
-    XMLTriple_t *pTripple;
-    pTripple =XMLTriple_createWith("p",CHAR(STRING_ELT(subSys,i)) , "xhtml");
-    XMLAttributes_t* xmlAttr = XMLAttributes_create();
-    XMLNode_t* notesXMLNode = XMLNode_createStartElement(pTripple, xmlAttr);
-    XMLNode_addChild( notesXMLNode, XMLNode_createTextNode("FLUX_VALE:TRUE")); 
-    
-    
-    printf(" SUBSYSTEM: %s \n", CHAR(STRING_ELT(subSys,i)));
-    SBase_setNotes( (SBase_t*) reaction, notesXMLNode);
-    
-    
-    char*  notesString = "FLUX_VALUE";
-    SBase_setNotesString((SBase_t*)reaction, notesString);
-    */
-    
+
     int isexchange=0;
     int k;
     if (Rf_isNull(met_bnd) && Rf_length(met_bnd) <= 1 && !Rf_isNull(ex_react))
@@ -2042,6 +2092,7 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
             SpeciesReference_setSpecies(spr,CHAR(STRING_ELT(met_id, j)));
             SpeciesReference_setStoichiometry(spr, fabs(REAL(SMatrix)[hash]));
             
+            //is Exchange Reaction
             if(isexchange==1)
             {
               /* Create boundary Species */
@@ -2102,11 +2153,7 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
         const char* para_lb;
         const char* para_ub;
         
-        char* newpara = malloc( 100 );
-        // sprintf(genid,"G_%s", CHAR(STRING_ELT(allgenes, i)));
-        //  free(genid);
-        // set the flux bounds for this reaction
-        
+        //default Parameter or new one
         if (lower_bnd[i]<= sybilmin)
         {
           para_lb="default_lb";
@@ -2116,15 +2163,14 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
           para_lb="default_0";
         }  
         else
-        {
-          sprintf(newpara,"%s_lower_bound", CHAR(STRING_ELT(react_id, i)));
-          
+        { //creacte Lower_bound Paramater
           para = Model_createParameter(model);
-          Parameter_setId(para, newpara);
+          Parameter_setId(para, append_strings(CHAR(STRING_ELT(react_id, i)),"lower_bound","_"));
           Parameter_setConstant(para, 1);
           Parameter_setValue(para, lower_bnd[i]);
+          SBase_setSBOTerm((SBase_t *)para,625);
           
-          para_lb=newpara;
+          para_lb=append_strings(CHAR(STRING_ELT(react_id, i)),"lower_bound","_");
           
         }  
         
@@ -2140,14 +2186,14 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
         
         else
         {
-          sprintf(newpara,"%s_upper_bound", CHAR(STRING_ELT(react_id, i)));
-          
+          //creacte upper_bound Paramater
           para = Model_createParameter(model);
-          Parameter_setId(para, newpara);
+          Parameter_setId(para, append_strings(CHAR(STRING_ELT(react_id, i)),"upper_bound","_"));
           Parameter_setConstant(para, 1);
           Parameter_setValue(para, upper_bnd[i]);
+          SBase_setSBOTerm((SBase_t *)para,625);
           
-          para_ub=newpara;
+          para_ub=append_strings(CHAR(STRING_ELT(react_id, i)),"upper_bound","_");
         }  
         
         // set the flux bounds for this reaction
@@ -2191,7 +2237,7 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
       const double *upper_bnd = REAL(uppbnd);
       
       char buf[20];
-      // printf("Lower: %s\n", buf);
+      // FBC1 FLUXBOUNDS
       sprintf(buf, "LOWER_BOUND%d", i);
       if (INTEGER(obj_coef)[i] != 1)
       {  
@@ -2234,12 +2280,12 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
     }  
   }
   
-  //if(validateSBML(sbmlDoc)==1)printf("falsche Val");
-  writeSBML(sbmlDoc, fname);
-  printf("Wrote file %s \n", fname);
-  
+  int result = writeSBML(sbmlDoc, fname);
   SEXP out = R_NilValue;
-  out = Rf_mkString("DONE");
+  if (result) out = Rf_mkString(append_strings("Wrote file",fname," "));
+  else out = Rf_mkString(append_strings("Failed to write",fname," "));
+
+  
   //UNPROTECT(1);
   return out;
 }
