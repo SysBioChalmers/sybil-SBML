@@ -897,13 +897,14 @@ else {
             if ( (length(genes[[i]] == 1)) && (genes[[i]] != "") ) {
                 geneInd <- match(genes[[i]], allGenes)
                 rxnGeneMat[i, geneInd] <- TRUE
-    
-                for (j in 1 : length(geneInd)) {
-                    pat  <- paste("x(", j, ")", sep = "")
-                    repl <- paste("x[", geneInd[j], "]", sep = "")
-    
-                    rules[i] <- gsub(pat, repl, rules[i], fixed = TRUE)
-                }
+                
+    			 # no use because new gprRule format
+#                for (j in 1 : length(geneInd)) {
+#                    pat  <- paste("x(", j, ")", sep = "")
+#                    repl <- paste("x[", geneInd[j], "]", sep = "")
+#    
+#                    rules[i] <- gsub(pat, repl, rules[i], fixed = TRUE)
+#                }
             }
         }
 
