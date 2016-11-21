@@ -1,22 +1,24 @@
 Package: sybilSBML
 Type: Package
-Title: SBML Integration in Package Sybil
-Version: 2.0.9
-Date: 2015-07-03
+Title: SBML Integration in Package 'Sybil'
+Version: 3.0.0
+Date: 2016-11-21
 Authors@R: c(person(c("C.", "Jonathan"), "Fritzemeier", role = c("cre", "ctb"), email = "clausjonathan.fritzemeier@uni-duesseldorf.de"),
-			 person("Gabriel", "Gelius-Dietrich", role = c("aut")),
-             person("Deya", "Alzoubi", role = "ctb"))
-Maintainer: Gabriel Gelius-Dietrich <geliudie@uni-duesseldorf.de>
-Depends: R (>= 2.14.2), Matrix, sybil (>= 1.2.4)
+			 person("Gabriel", "Gelius-Dietrich", role = c("aut", "ctb")),
+             person("Deya", "Alzoubi", role = "ctb"),
+             person("Ardalan", "Habil", role = "ctb"))
+Maintainer: C. Jonathan Fritzemeier <clausjonathan.fritzemeier@uni-duesseldorf.de>
+Depends: R (>= 2.14.2), Matrix, sybil (>= 2.0.0)
 Imports: methods
-Description: SBML (Systems Biology Markup Language) integration in sybil. Many constraint based metabolic models are published in SBML format (*.xml). Herewith is the ability to read and check SBML files in sybil provided.
+Description: 'SBML' (Systems Biology Markup Language) with FBC (Flux Balance Constraints) integration in 'sybil'. Many constraint based metabolic models are published in 'SBML' format ('*.xml'). Herewith is the ability to read, write, and check 'SBML' files in 'sybil' provided.
 License: GPL-3 | file LICENSE
 LazyLoad: yes
 Collate: generics.R sbmlPtrClass.R sbmlErrorClass.R sybilSBML.R
         uglyHack.R readSBMLmod.R zzz.R
-Packaged: 2016-10-18 13:31:19 UTC; ardalan
+Packaged: 2016-11-21 07:11:55 UTC; jonathan
 Author: C. Jonathan Fritzemeier [cre, ctb],
-  Gabriel Gelius-Dietrich [aut],
-  Deya Alzoubi [ctb]
+  Gabriel Gelius-Dietrich [aut, ctb],
+  Deya Alzoubi [ctb],
+  Ardalan Habil [ctb]
 NeedsCompilation: yes
 Repository: CRAN
