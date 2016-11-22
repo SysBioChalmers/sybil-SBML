@@ -331,8 +331,7 @@ deformatGene<-function(idstr) {
   return(idstr)
 }
 
-exportSBML<- function(morg=NULL,level=2,version=4,FbcLevel=0,filename="export.xml",validation=TRUE){
-  #morg<-modelorg[["modelorg"]] 
+exportSBML<- function(morg=NULL,level=2,version=4,FbcLevel=0,filename="export.xml",recoverExtMet=TRUE,printNotes=TRUE,printAnnos=TRUE,validation=FALSE ){
   if(class(morg)!="modelorg"){
     stop("morg has to be of class modelorg\n")
   }
@@ -382,12 +381,14 @@ exportSBML<- function(morg=NULL,level=2,version=4,FbcLevel=0,filename="export.xm
   ##EXCHANGE REACTIONS##
   ex <- findExchReact(morg)
   ex_react<-NULL
-  if(!is.null(ex))
+  # if recoverExtMet== FALSE => null for ex_react
+  if( (!is.null(ex)) && (recoverExtMet) )
   {
     if(!(all(diag(S(morg)[met_pos(ex), react_pos(ex)])==-1)))
       stop("exchange reactions with Scoeff different than -1\n")
     ex_react<-as.integer(react_pos(ex))
   }
+  
   ### Build wrapper for C Function #####
   
   
@@ -414,28 +415,25 @@ exportSBML<- function(morg=NULL,level=2,version=4,FbcLevel=0,filename="export.xm
   else modhasubSys<-TRUE
   
   newsubS<- NULL
-  
-  
-  # TODO ATRRIBUTE NUR LESEN BEI NEUER SYBIL VERSION
-  
+
   if( .hasSlot(morg,"mod_attr") &&  .hasSlot(morg,"comp_attr") &&  .hasSlot(morg,"met_attr")  &&  .hasSlot(morg,"react_attr") )
-  newSybil<-TRUE
+    newSybil<-TRUE
   else newSybil<-FALSE
   ### Start newSybil attr
   if(newSybil)
   { 
-    if("notes" %in% colnames(mod_attr(morg))) mod_notes<-as.character(mod_attr(morg)[['notes']])
-    if("annotation" %in% colnames(mod_attr(morg))) mod_annotation<-as.character(mod_attr(morg)[['annotation']])
+    if(("notes" %in% colnames(mod_attr(morg))) && (printNotes) ) mod_notes<-as.character(mod_attr(morg)[['notes']])
+    if(("annotation" %in% colnames(mod_attr(morg))) && (printAnnos) ) mod_annotation<-as.character(mod_attr(morg)[['annotation']])
     
-    if("notes" %in% colnames(comp_attr(morg))) com_notes<-as.character(as.list((comp_attr(morg)[['notes']])))
-    if("annotation" %in% colnames(comp_attr(morg))) com_annotation<-as.character(as.list((comp_attr(morg)[['annotation']])))
+    if(("notes" %in% colnames(comp_attr(morg)))    && (printNotes) ) com_notes<-as.character(as.list((comp_attr(morg)[['notes']])))
+    if(("annotation" %in% colnames(comp_attr(morg))) && (printAnnos)  ) com_annotation<-as.character(as.list((comp_attr(morg)[['annotation']])))
     
     if("charge" %in% colnames(met_attr(morg))) met_charge<- as.integer(as.list((met_attr(morg)[['charge']])))
     if("chemicalFormula" %in% colnames(met_attr(morg))) met_formula<-as.character(as.list((met_attr(morg)[['chemicalFormula']])))
-    if("annotation" %in% colnames(met_attr(morg))) met_anno<-as.character(as.list((met_attr(morg)[['annotation']])))
+    if(("annotation" %in% colnames(met_attr(morg))) && (printAnnos)) met_anno<-as.character(as.list((met_attr(morg)[['annotation']])))
     if("boundaryCondition" %in% colnames(met_attr(morg))) met_bnd<-as.logical(as.list((met_attr(morg)[['boundaryCondition']])))
     
-    if("notes" %in% colnames(met_attr(morg)))
+    if(("notes" %in% colnames(met_attr(morg))) && (printNotes) )
     {   # delete Formular and charge from notes to do
       met_notes<-as.character(as.list((met_attr(morg)[['notes']])))
       if (!is.null(met_charge) || !is.null(met_formula))
@@ -481,10 +479,10 @@ exportSBML<- function(morg=NULL,level=2,version=4,FbcLevel=0,filename="export.xm
       }
       
     }
-    if("annotation" %in% colnames(react_attr(morg))) react_anno<-as.character(as.list((react_attr(morg)[['annotation']])))
+    if(("annotation" %in% colnames(react_attr(morg))) && (printAnnos)) react_anno<-as.character(as.list((react_attr(morg)[['annotation']])))
     
     # Merge Notes with "our" Notes and make sure gpr Rules from gpr
-    if("notes" %in% colnames(react_attr(morg)))
+    if(("notes" %in% colnames(react_attr(morg))) && (printNotes))
     {
       react_notes<-as.character(as.list((react_attr(morg)[['notes']])))
       # using
@@ -565,6 +563,7 @@ exportSBML<- function(morg=NULL,level=2,version=4,FbcLevel=0,filename="export.xm
                   react_notes,
                   react_anno,
                   ex_react,
+                  as.logical(validation),
                   as.character(deformatGene(allgenes))
   )
   return (success)
