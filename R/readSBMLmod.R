@@ -1055,20 +1055,6 @@ if(newSybil)
   
 }  
 
-#------------------------------------------------------------------------------#
-#                         compartments Attr @Ardalan                           #
-#------------------------------------------------------------------------------#
-
-numcom<-length(mod_compart(mod))
-comannotation <- compartmentsList[["annotation"]]
-comnotes <- compartmentsList[["notes"]]
-if(newSybil)
-{ 
-sybil::comp_attr(mod)  <-data.frame(row.names=1:numcom)
-if( !is.null(comannotation) && length(comannotation)==numcom   )sybil::comp_attr(mod)[['annotation']]<-comannotation
-if( !is.null(comnotes) && length(comnotes)==numcom  )sybil::comp_attr(mod)[['notes']]<-comnotes
-
-}
 
 #------------------------------------------------------------------------------#
 #                             metabolite id's                                  #
@@ -1162,6 +1148,22 @@ if(newSybil)
   
   
 }
+
+#------------------------------------------------------------------------------#
+#                         compartments Attr @Ardalan                           #
+#------------------------------------------------------------------------------#
+sybil::mod_compart(mod) <- sybil::mod_compart(mod)[sort(unique(sybil::met_comp(mod)))]
+numcom<-length(mod_compart(mod))
+comannotation <- compartmentsList[["annotation"]]
+comnotes <- compartmentsList[["notes"]]
+if(newSybil)
+{ 
+  sybil::comp_attr(mod)  <-data.frame(row.names=1:numcom)
+  if( !is.null(comannotation) && length(comannotation)==numcom   )sybil::comp_attr(mod)[['annotation']]<-comannotation
+  if( !is.null(comnotes) && length(comnotes)==numcom  )sybil::comp_attr(mod)[['notes']]<-comnotes
+  
+}
+
 
 #------------------------------------------------------------------------------#
 #                             check reversibilities                            #
