@@ -1605,7 +1605,7 @@ void ParseModtoAnno  (SBase_t* comp , char* Mannocopy)
 
 
 
-SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybil_max, SEXP mod_desc, SEXP mod_name, SEXP mod_compart, SEXP met_id, SEXP met_name, SEXP met_comp, SEXP met_form,SEXP met_charge, SEXP react_id, SEXP react_name, SEXP react_rev, SEXP lowbnd, SEXP uppbnd, SEXP obj_coef, SEXP subSys, SEXP gpr, SEXP SMatrix, SEXP mod_notes, SEXP mod_anno, SEXP com_notes , SEXP com_anno, SEXP met_notes, SEXP met_anno, SEXP met_bnd , SEXP react_notes, SEXP react_anno, SEXP ex_react, SEXP allgenes)
+SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybil_max, SEXP mod_desc, SEXP mod_name, SEXP mod_compart, SEXP met_id, SEXP met_name, SEXP met_comp, SEXP met_form,SEXP met_charge, SEXP react_id, SEXP react_name, SEXP react_rev, SEXP lowbnd, SEXP uppbnd, SEXP obj_coef, SEXP subSys, SEXP gpr, SEXP SMatrix, SEXP mod_notes, SEXP mod_anno, SEXP com_notes , SEXP com_anno, SEXP met_notes, SEXP met_anno, SEXP met_bnd , SEXP react_notes, SEXP react_anno, SEXP ex_react,SEXP validation, SEXP allgenes)
 {
   //Varaibles from R
   const char* fname = CHAR(STRING_ELT(filename, 0));
@@ -1790,8 +1790,7 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
     comp = Model_createCompartment(model);
     Compartment_setId(comp,sName);
     Compartment_setConstant(comp,1);
-    if( strcmp(sName,"BOUNDARY")==0 || strcmp(sName,"Boundary")==0  || strcmp(sName,"boundary")==0 )hasBoundary=1;
-    
+    if( strcmp(sName,"BOUNDARY")==0 || strcmp(sName,"Boundary")==0  || strcmp(sName,"boundary")==0)hasBoundary=1;
     if (!Rf_isNull(com_notes) && Rf_length(com_notes) > 1) 
     {  
       char *Cnotes = (char*) CHAR(STRING_ELT(com_notes, i));
@@ -1819,7 +1818,7 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
   
   
   /* Boundary Compartment */
-  if(hasBoundary==0 && Rf_isNull(met_bnd) && Rf_length(met_bnd) <= 1 )
+  if(hasBoundary==0 && Rf_isNull(met_bnd) && Rf_length(met_bnd) <= 1 && !Rf_isNull(ex_react))
   {  
   comp = Model_createCompartment(model);
   Compartment_setId(comp,"BOUNDARY");
@@ -1903,13 +1902,8 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
       
       if((Manno != NULL) && (Manno[0] != '\0' )) 
       {  
-        //XMLNode_t * xmlannotation= RDFAnnotationParser_createAnnotation();
-        //XMLNode_t *rdf=RDFAnnotationParser_createRDFAnnotation(2,4);
-        //XMLNode_addChild(xmlannotation,(const XMLNode_t*) rdf);
-        
-        //char *Mmetaid = (char*) CHAR(STRING_ELT(met_metaid, i));
+
         SBase_setMetaId((SBase_t*)sp, CHAR(STRING_ELT(met_id, i)));
-        //SBase_appendAnnotation((SBase_t*)sp, xmlannotation ); 
         
         // COPY STRING  
         char *Manno   = (char*) CHAR(STRING_ELT(met_anno, i));
@@ -2094,7 +2088,7 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
             SpeciesReference_setStoichiometry(spr, fabs(REAL(SMatrix)[hash]));
             
             //is Exchange Reaction
-            if(isexchange==1)
+            if(isexchange==1 && !Rf_isNull(ex_react))
             {
               /* Create boundary Species */
               sp = Model_createSpecies(model);
@@ -2281,6 +2275,20 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
     }  
   }
   
+  // if VALIDATION TRUE FIND ERRORS
+  if(LOGICAL(validation)[0]==1)
+  {
+    unsigned int       errors = 0;
+    errors  = SBMLDocument_getNumErrors(sbmlDoc);
+   // errors += SBMLDocument_checkConsistency(sbmlDoc); warnings
+    if (errors > 0){
+    SBMLDocument_printErrors(sbmlDoc, stdout);
+    printf("\n");
+    }
+    else printf("No errors \n");
+  }  
+
+  // write SBML file
   int result = writeSBML(sbmlDoc, fname);
   SEXP out = R_NilValue;
   if (result) out = Rf_mkString(append_strings("Wrote file",fname," "));
