@@ -49,7 +49,7 @@ getSBMLCompartList,
 getSBMLSpeciesList,
 getSBMLReactionsList,
 readSBMLmod,
-exportSBML,
+writeSBML,
 getSBMLFbcversion,
 getSBMLmodNotes,
 getSBMLmodAnnotation

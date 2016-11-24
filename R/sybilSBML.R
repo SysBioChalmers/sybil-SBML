@@ -330,7 +330,7 @@ deformatGene<-function(idstr) {
   return(idstr)
 }
 
-exportSBML<- function(morg=NULL,level=2,version=4,FbcLevel=0,filename="export.xml",recoverExtMet=TRUE,printNotes=TRUE,printAnnos=TRUE,validation=FALSE ){
+writeSBML<- function(morg=NULL,level=2,version=4,fbcLevel=0,filename="export.xml",recoverExtMet=FALSE,printNotes=TRUE,printAnnos=TRUE,validation=FALSE ){
   if(class(morg)!="modelorg"){
     stop("morg has to be of class modelorg\n")
   }
@@ -340,7 +340,7 @@ exportSBML<- function(morg=NULL,level=2,version=4,FbcLevel=0,filename="export.xm
   { 
     # test if Matrix has no double values
     if( !all( S(morg) == floor(S(morg))) ) warning("Level 1 does not support double values")
-    FbcLevel=0
+    fbcLevel=0
       if(version != 2)
       {
         warning("just Level 1 Version 2 will be supported")
@@ -348,7 +348,7 @@ exportSBML<- function(morg=NULL,level=2,version=4,FbcLevel=0,filename="export.xm
       }
   }else if (level==2)
   { 
-    FbcLevel=0
+    fbcLevel=0
     if(version >5)
     {
       warning("Level 2 Version 5 will be supported")
@@ -361,7 +361,7 @@ exportSBML<- function(morg=NULL,level=2,version=4,FbcLevel=0,filename="export.xm
     }  
   }
   else if (level==3)
-  { if(FbcLevel >2)FbcLevel=2
+  { if(fbcLevel >2)fbcLevel=2
   if(version != 1)
   {
     print("Level 3 Version 1 will be supported")
@@ -454,10 +454,10 @@ exportSBML<- function(morg=NULL,level=2,version=4,FbcLevel=0,filename="export.xm
               #Have Gene if not ->no need to write in FBC2
               if(haveform)
               {  
-                if(FbcLevel==0)met_notes[i]<-sub("FORMULA: [^<]+",paste("FORMULA: ",met_formula[i], sep = ""), met_notes[i], perl = TRUE)
+                if(fbcLevel==0)met_notes[i]<-sub("FORMULA: [^<]+",paste("FORMULA: ",met_formula[i], sep = ""), met_notes[i], perl = TRUE)
                 else met_notes[i]<-sub(paste("<",tag,">","FORMULA: [^<]+","</",tag,">",sep = ""),"",met_notes[i], perl = TRUE)
               }    
-              else if(FbcLevel==0) met_notes[i]<-gsub("</notes>",paste("<",tag,">","FORMULA: ",met_formula[i],"</",tag,">","\n</notes>",sep = ""),met_notes[i])
+              else if(fbcLevel==0) met_notes[i]<-gsub("</notes>",paste("<",tag,">","FORMULA: ",met_formula[i],"</",tag,">","\n</notes>",sep = ""),met_notes[i])
             }
             if (!is.null(met_charge))
             {    
@@ -465,13 +465,13 @@ exportSBML<- function(morg=NULL,level=2,version=4,FbcLevel=0,filename="export.xm
               #Have Subsystem
               if(havecharge)
               {  
-                if(FbcLevel !=0 || (level==2 && version==1 ))
+                if(fbcLevel !=0 || (level==2 && version==1 ))
                   met_notes[i]<-sub(paste("<",tag,">","CHARGE: [^<]+","</",tag,">",sep = ""),"",met_notes[i], perl = TRUE)
                 else met_notes[i]<-sub("CHARGE: [^<]+",paste("CHARGE: ",met_charge[i], sep = ""), met_notes[i], perl = TRUE)
                 
                 
               }  
-              else if(FbcLevel==0) if(level!=2 && version!=1) met_notes[i]<-gsub("</notes>",paste("<",tag,">","CHARGE: ",met_charge[i],"</",tag,">","\n</notes>",sep = ""),met_notes[i])
+              else if(fbcLevel==0) if(level!=2 && version!=1) met_notes[i]<-gsub("</notes>",paste("<",tag,">","CHARGE: ",met_charge[i],"</",tag,">","\n</notes>",sep = ""),met_notes[i])
             }
           }
         }  
@@ -504,10 +504,10 @@ exportSBML<- function(morg=NULL,level=2,version=4,FbcLevel=0,filename="export.xm
           #Have Gene if not ->no need to write in FBC2
           if(havegene)
           {
-            if(FbcLevel==2) react_notes[i]<-sub(paste("<",tag,">","GENE[_ ]?ASSOCIATION: [^<]+","</",tag,">",sep = ""),"",react_notes[i], perl = TRUE)
+            if(fbcLevel==2) react_notes[i]<-sub(paste("<",tag,">","GENE[_ ]?ASSOCIATION: [^<]+","</",tag,">",sep = ""),"",react_notes[i], perl = TRUE)
             else react_notes[i]<-sub("GENE[_ ]?ASSOCIATION: [^<]+",paste("GENE_ASSOCIATION: ",gpr(morg)[i], sep = ""), react_notes[i], perl = TRUE)
           }
-          else if(FbcLevel!=2)react_notes[i]<-gsub("</notes>",paste("<",tag,">","GENE_ASSOCIATION: ",gpr(morg)[i],"</",tag,">","\n</notes>",sep = ""),react_notes[i])
+          else if(fbcLevel!=2)react_notes[i]<-gsub("</notes>",paste("<",tag,">","GENE_ASSOCIATION: ",gpr(morg)[i],"</",tag,">","\n</notes>",sep = ""),react_notes[i])
           
           #Have Subsystem
           if(havesub)react_notes[i]<-sub("SUBSYSTEM: [^<]+",paste("SUBSYSTEM: ",newsubS[i], sep = ""), react_notes[i], perl = TRUE)
@@ -532,7 +532,7 @@ exportSBML<- function(morg=NULL,level=2,version=4,FbcLevel=0,filename="export.xm
   success <-.Call("exportSBML", PACKAGE = "sybilSBML",
                   as.integer(version),
                   as.integer(level),
-                  as.integer(FbcLevel),
+                  as.integer(fbcLevel),
                   as.character(filename),
                   SYBIL_SETTINGS("MAXIMUM"),
                   as.character(mod_desc(morg)),

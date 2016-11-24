@@ -2291,11 +2291,16 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
   // write SBML file
   int result = writeSBML(sbmlDoc, fname);
   SEXP out = R_NilValue;
-  if (result) out = Rf_mkString(append_strings("Wrote file",fname," "));
-  else out = Rf_mkString(append_strings("Failed to write",fname," "));
-
-  
-  //UNPROTECT(1);
+  if (result)
+  {
+    printf("Wrote file %s \n",fname);
+    out = Rf_ScalarLogical(1);
+  }  
+  else
+  {
+   printf("Cloud not write file %s \n",fname);   
+   out = Rf_ScalarLogical(0);
+  }
   return out;
 }
 
