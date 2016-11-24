@@ -321,12 +321,11 @@ deformatSBMLid <- function(idstr) {
 }
 
 deformatGene<-function(idstr) {
-  # idstr <- gsub("and", "&&", idstr, fixed = TRUE)
-  #  idstr <- gsub("or", "||", idstr, fixed = TRUE)
-  idstr <- gsub("( ", "(", idstr, fixed = TRUE)
-  idstr <- gsub(" (", "(", idstr, fixed = TRUE)
-  idstr <- gsub(") ", ")", idstr, fixed = TRUE)
-  idstr <- gsub(" )", ")", idstr, fixed = TRUE)
+  idstr<-gsub("\\((\\S+)\\)", "\\1", idstr)
+  #idstr <- gsub("( ", "(", idstr, fixed = TRUE)
+  #idstr <- gsub(" (", "(", idstr, fixed = TRUE)
+  #idstr <- gsub(") ", ")", idstr, fixed = TRUE)
+  #idstr <- gsub(" )", ")", idstr, fixed = TRUE)
   idstr <- gsub(":", "_", idstr, fixed = TRUE)
   return(idstr)
 }
@@ -568,11 +567,3 @@ exportSBML<- function(morg=NULL,level=2,version=4,FbcLevel=0,filename="export.xm
   )
   return (success)
 }
-
-
-
-
-
-
-
-
