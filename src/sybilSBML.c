@@ -677,7 +677,7 @@ SEXP getSBMLmodAnnotation(SEXP sbmlmod) {
   checkModel(sbmlmod);
   
   if (SBase_isSetAnnotation((SBase_t *)  R_ExternalPtrAddr(sbmlmod))) {
-    XMLNode_t* xml = RDFAnnotationParser_parseCVTerms((SBase_t *)  R_ExternalPtrAddr(sbmlmod));
+    XMLNode_t* xml = SBase_getAnnotation((SBase_t *)  R_ExternalPtrAddr(sbmlmod));
     manno = parseAnnotationTomorg(xml);
   }
   else {
@@ -945,7 +945,7 @@ SEXP getSBMLCompartList(SEXP sbmlmod) {
       
       /* annotation */
       if (SBase_isSetAnnotation((SBase_t *) clel)) {
-        XMLNode_t* xml = RDFAnnotationParser_parseCVTerms((SBase_t *) clel);
+        XMLNode_t* xml = SBase_getAnnotation((SBase_t *) clel);
         SET_STRING_ELT(compannot, i, Rf_mkChar(parseAnnotationTomorg(xml)));
         annocount=annocount+1;
       }
@@ -1088,7 +1088,7 @@ SEXP getSBMLSpeciesList(SEXP sbmlmod) {
       /* annotation */
       if (SBase_isSetAnnotation((SBase_t *) splel)) {
         //SET_STRING_ELT(metannot, i, Rf_mkChar(SBase_getAnnotationString((SBase_t *) splel)));
-        XMLNode_t* xml = RDFAnnotationParser_parseCVTerms((SBase_t *) splel);
+        XMLNode_t* xml = SBase_getAnnotation((SBase_t *) splel);
         annotcount=annotcount+1;
         SET_STRING_ELT(metannot, i, Rf_mkChar(parseAnnotationTomorg(xml)));
       }
@@ -1314,7 +1314,7 @@ SEXP getSBMLReactionsList(SEXP sbmlmod) {
       /* annotation */
       if (SBase_isSetAnnotation((SBase_t *) relel)) {
         //SET_STRING_ELT(reactannot, i, Rf_mkChar(SBase_getAnnotationString((SBase_t *) relel)));
-        XMLNode_t* xml = RDFAnnotationParser_parseCVTerms((SBase_t *) relel);
+        XMLNode_t* xml = SBase_getAnnotation((SBase_t *) relel);
         SET_STRING_ELT(reactannot, i, Rf_mkChar(parseAnnotationTomorg(xml)));
         annocount=annocount+1;
       }
