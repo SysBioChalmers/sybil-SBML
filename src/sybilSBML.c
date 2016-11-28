@@ -1648,10 +1648,10 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
   KineticLaw_t* kl;
   Parameter_t* para;
   
-  ASTNode_t* flux;
+ // ASTNode_t* flux;
   ASTNode_t* astMath;  
-  ASTNode_t* ast;
-  char* mathXMLString;
+  //ASTNode_t* ast;
+  //char* mathXMLString;
   
   /*---------------------------------------------------------------------------
   *
@@ -1737,7 +1737,7 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
   {  char *Manno   = (char*) CHAR(STRING_ELT(mod_anno, 0));
     if((Manno != NULL) && (Manno[0] != '\0' )) 
     {  
-      SBase_setMetaId((SBase_t*)reaction,model_name);
+      SBase_setMetaId((SBase_t*)model,model_name);
       char Mannocopy[strlen(Manno)+1];
       strcpy(Mannocopy,Manno);
       // PARSING
@@ -1932,7 +1932,7 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
     if (!Rf_isNull(gpr) && Rf_length(gpr) > 1)
     {  
       modelPlug = SBase_getPlugin((SBase_t *)(model), "fbc");
-      GeneProduct_t* gene;
+      //GeneProduct_t* gene;
       char* genid = malloc( 100 );
       
       for (i=0; i<LENGTH(allgenes); i++)
