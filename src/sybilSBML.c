@@ -1751,29 +1751,29 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
   * Creates UnitDefinition objects inside the Model object.
   *
   *---------------------------------------------------------------------------*/
-  
+  /*
   unitdef = Model_createUnitDefinition(model);
   UnitDefinition_setId(unitdef,"litre_per_mole_per_second");
   
-  /*  Creates an Unit inside the UnitDefinition object ("litre_per_mole_per_second") */
+  //  Creates an Unit inside the UnitDefinition object ("litre_per_mole_per_second") 
   
   unit = UnitDefinition_createUnit(unitdef);
   Unit_setKind(unit,UNIT_KIND_MOLE);
   Unit_setExponent(unit,-1);
   
-  /*  Creates an Unit inside the UnitDefinition object ("litre_per_mole_per_second") */
+  //  Creates an Unit inside the UnitDefinition object ("litre_per_mole_per_second") 
   
   unit = UnitDefinition_createUnit(unitdef);
   Unit_setKind(unit,UNIT_KIND_LITRE);
   Unit_setExponent(unit,1);
   
-  /*  Creates an Unit inside the UnitDefinition object ("litre_per_mole_per_second") */
+  //  Creates an Unit inside the UnitDefinition object ("litre_per_mole_per_second") 
   
   unit = UnitDefinition_createUnit(unitdef);
   Unit_setKind(unit,UNIT_KIND_SECOND);
   Unit_setExponent(unit,-1);
   
-  
+  */
   
   /*---------------------------------------------------------------------------
   *
@@ -2275,32 +2275,12 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
     }  
   }
   
-  // if VALIDATION TRUE FIND ERRORS
-  if(LOGICAL(validation)[0]==1)
-  {
-    unsigned int       errors = 0;
-    errors  = SBMLDocument_getNumErrors(sbmlDoc);
-   // errors += SBMLDocument_checkConsistency(sbmlDoc); warnings
-    if (errors > 0){
-    SBMLDocument_printErrors(sbmlDoc, stdout);
-    printf("\n");
-    }
-    else printf("No errors \n");
-  }  
-
   // write SBML file
   int result = writeSBML(sbmlDoc, fname);
   SEXP out = R_NilValue;
-  if (result)
-  {
-    printf("Wrote file %s \n",fname);
-    out = Rf_ScalarLogical(1);
-  }  
-  else
-  {
-   printf("Cloud not write file %s \n",fname);   
-   out = Rf_ScalarLogical(0);
-  }
+  if (result)out = Rf_ScalarLogical(1);
+  else out = Rf_ScalarLogical(0);
+  
   return out;
 }
 
