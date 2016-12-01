@@ -565,5 +565,12 @@ writeSBML<- function(morg=NULL,level=2,version=4,fbcLevel=0,filename="export.xml
                   as.logical(validation),
                   as.character(deformatGene(allgenes))
   )
+# SUCESS MESSAGES
+  if(success)
+  {
+    message(paste("Wrote file ",filename,"\n",sep=""), appendLF = FALSE);
+    if (validation)print(validateSBMLdocument(filename));
+  }  
+  else  message(paste("Could not write file ",filename,"\n",sep=""), appendLF = FALSE);
   return (success)
 }
