@@ -10,7 +10,7 @@
 }
 
 \usage{
-  getSBMLmodName(sbmlm)
+  getSBMLmodAnnotation(sbmlm)
 }
 
 \arguments{
