@@ -413,7 +413,7 @@ if (is.null(compartmentsList)) {
 }
 
 missingId(compartmentsList)
-sybil::mod_compart(mod) <- compartmentsList[["id"]]
+comp_tmp_id <- compartmentsList[["id"]]
 
 
 #------------------------------------------------------------------------------#
@@ -1057,6 +1057,27 @@ if(newSybil)
 
 
 #------------------------------------------------------------------------------#
+#                         compartments Attr @Ardalan                           #
+#------------------------------------------------------------------------------#
+# Define SKIP_COMPARTMENT FALSE= HAS NO REFERENCE
+met_comp_tmp <- metabolitesList[["compartment"]][met_id_pos][SKIP_METABOLITE]
+SKIP_COMPARTMENT<- comp_tmp_id %in% unique(met_comp_tmp)
+
+  
+sybil::mod_compart(mod) <- comp_tmp_id[SKIP_COMPARTMENT]
+numcom<-length(mod_compart(mod))
+comannotation <- compartmentsList[["annotation"]][SKIP_COMPARTMENT]
+comnotes <- compartmentsList[["notes"]][SKIP_COMPARTMENT]
+if(newSybil)
+{ 
+  sybil::comp_attr(mod)  <-data.frame(row.names=1:numcom)
+  if( !is.null(comannotation) && length(comannotation)==numcom   )sybil::comp_attr(mod)[['annotation']]<-comannotation
+  if( !is.null(comnotes) && length(comnotes)==numcom  )sybil::comp_attr(mod)[['notes']]<-comnotes
+  
+}
+
+
+#------------------------------------------------------------------------------#
 #                             metabolite id's                                  #
 #------------------------------------------------------------------------------#
 
@@ -1071,7 +1092,7 @@ sybil::met_id(mod) <- gsub("-",      "_",    met_id_tmp, fixed = TRUE)
 #                        metabolite compartments                               #
 #------------------------------------------------------------------------------#
 
-met_comp_tmp <- metabolitesList[["compartment"]][met_id_pos][SKIP_METABOLITE]
+#met_comp_tmp <- metabolitesList[["compartment"]][met_id_pos][SKIP_METABOLITE]
 
 sybil::met_comp(mod) <- match(met_comp_tmp, sybil::mod_compart(mod))
 
@@ -1149,20 +1170,6 @@ if(newSybil)
   
 }
 
-#------------------------------------------------------------------------------#
-#                         compartments Attr @Ardalan                           #
-#------------------------------------------------------------------------------#
-sybil::mod_compart(mod) <- sybil::mod_compart(mod)[sort(unique(sybil::met_comp(mod)))]
-numcom<-length(mod_compart(mod))
-comannotation <- compartmentsList[["annotation"]]
-comnotes <- compartmentsList[["notes"]]
-if(newSybil)
-{ 
-  sybil::comp_attr(mod)  <-data.frame(row.names=1:numcom)
-  if( !is.null(comannotation) && length(comannotation)==numcom   )sybil::comp_attr(mod)[['annotation']]<-comannotation
-  if( !is.null(comnotes) && length(comnotes)==numcom  )sybil::comp_attr(mod)[['notes']]<-comnotes
-  
-}
 
 
 #------------------------------------------------------------------------------#
