@@ -10,7 +10,7 @@
 }
 
 \usage{
-  getSBMLversion(sbmlf)
+  getSBMLFbcversion(sbmlf)
 }
 
 \arguments{
