@@ -562,7 +562,6 @@ writeSBML<- function(morg=NULL,level=2,version=4,fbcLevel=0,filename="export.xml
                   react_notes,
                   react_anno,
                   ex_react,
-                  as.logical(validation),
                   as.character(deformatGene(allgenes))
   )
 # SUCESS MESSAGES
