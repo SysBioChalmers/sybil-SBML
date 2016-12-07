@@ -54,7 +54,7 @@ static const R_CallMethodDef callMethods[] = {
     {"getSBMLCompartList",         (DL_FUNC) &getSBMLCompartList,         1},
     {"getSBMLSpeciesList",         (DL_FUNC) &getSBMLSpeciesList,         1},
     {"getSBMLReactionsList",       (DL_FUNC) &getSBMLReactionsList,       1},
-    {"exportSBML",                 (DL_FUNC) &exportSBML,                 34},
+    {"exportSBML",                 (DL_FUNC) &exportSBML,                 33},
     {"getSBMLFbcversion",          (DL_FUNC) &getSBMLFbcversion,          1},
     {NULL, NULL, 0}
 };
@@ -66,5 +66,3 @@ void R_init_sybilSBML(DllInfo *info) {
     R_registerRoutines(info, NULL, callMethods, NULL, NULL);
     R_useDynamicSymbols(info, FALSE);
 }
-
-
