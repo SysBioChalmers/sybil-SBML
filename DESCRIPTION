@@ -1,22 +1,24 @@
 Package: sybilSBML
 Type: Package
 Title: SBML Integration in Package 'Sybil'
-Version: 2.0.11
-Date: 2016-06-06
+Version: 3.0.1
+Date: 2016-12-16
 Authors@R: c(person(c("C.", "Jonathan"), "Fritzemeier", role = c("cre", "ctb"), email = "clausjonathan.fritzemeier@uni-duesseldorf.de"),
 			 person("Gabriel", "Gelius-Dietrich", role = c("aut", "ctb")),
-             person("Deya", "Alzoubi", role = "ctb"))
+             person("Deya", "Alzoubi", role = "ctb"),
+             person("Ardalan", "Habil", role = "ctb"))
 Maintainer: C. Jonathan Fritzemeier <clausjonathan.fritzemeier@uni-duesseldorf.de>
 Depends: R (>= 2.14.2), Matrix, sybil (>= 2.0.0)
 Imports: methods
-Description: 'SBML' (Systems Biology Markup Language) integration in 'sybil'. Many constraint based metabolic models are published in 'SBML' format ('*.xml'). Herewith is the ability to read and check 'SBML' files in 'sybil' provided.
+Description: 'SBML' (Systems Biology Markup Language) with FBC (Flux Balance Constraints) integration in 'sybil'. Many constraint based metabolic models are published in 'SBML' format ('*.xml'). Herewith is the ability to read, write, and check 'SBML' files in 'sybil' provided.
 License: GPL-3 | file LICENSE
 LazyLoad: yes
 Collate: generics.R sbmlPtrClass.R sbmlErrorClass.R sybilSBML.R
         uglyHack.R readSBMLmod.R zzz.R
-Packaged: 2015-06-06 07:11:55 UTC; jonathan
+Packaged: 2016-12-16 07:11:55 UTC; jonathan
 Author: C. Jonathan Fritzemeier [cre, ctb],
   Gabriel Gelius-Dietrich [aut, ctb],
-  Deya Alzoubi [ctb]
+  Deya Alzoubi [ctb],
+  Ardalan Habil [ctb]
 NeedsCompilation: yes
 Repository: CRAN

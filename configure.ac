@@ -1,4 +1,4 @@
-AC_INIT([sybilSBML], [2.0.8], [geliudie@uni-duesseldorf.de])
+AC_INIT([sybilSBML], [3.0.0], [clausjonathan.fritzemeier@uni-duesseldorf.de])
 
 dnl # --------------------------------------------------------------------
 dnl # global (environment) variables
@@ -235,6 +235,38 @@ AC_CHECK_HEADER([sbml/SBMLTypes.h], ,
 AC_SEARCH_LIBS([readSBML], [sbml], ,
     AC_MSG_ERROR([Could not link to libSBML:
       use --with-sbml-lib or PKG_LIBS to specify the library path and the libraries to pass to the linker.]))
+
+AC_CHECK_LIB([sbml], [readSBML], ,
+    AC_MSG_ERROR([Could not link to libSBML:
+      use --with-sbml-lib or PKG_LIBS to specify the library path and the libraries to pass to the linker.]))
+
+AC_CHECK_HEADER([sbml/packages/fbc/common/FbcExtensionTypes.h], ,
+ AC_MSG_ERROR([Could not find specific FBC header of libSBML:
+      make sure your libSBML version is >= 5.13.]),
+      [#include <sbml/SBMLTypes.h>])
+
+#AC_CHECK_LIB([sbml], [SBMLExtensionRegistry_getRegisteredPackages], ,
+#    AC_MSG_ERROR([Could not find specific FBC function of libSBML:
+#		make sure your libSBML version is >= 5.13.]))
+
+AC_CHECK_FUNCS([SBase_getPlugin SBMLExtensionRegistry_getRegisteredPackages GeneProductAssociation_setAssociation FbcReactionPlugin_getLowerFluxBound], ,
+	AC_MSG_ERROR([Could not find specific FBC function of libSBML:
+		make sure your libSBML version is >= 5.13.]))
+
+#AC_SEARCH_LIBS([SBase_getPlugin], [sbml], ,
+#    AC_MSG_ERROR([Could not find specific FBC function of libSBML:
+#      make sure your libSBML version is >= 5.13.]))
+
+#AC_SEARCH_LIBS([SBMLExtensionRegistry_getRegisteredPackages], [sbml], ,
+#    AC_MSG_ERROR([Could not find specific FBC function of libSBML:
+#      make sure your libSBML version is >= 5.13.]))
+
+
+
+#AC_SEARCH_LIBS([GeneProductAssociation_setAssociation], [sbml], ,
+#    AC_MSG_ERROR([Could not find specific FBC function of libSBML:
+#      make sure your libSBML version is >= 5.13.]))
+
 
 
 dnl # --------------------------------------------------------------------
