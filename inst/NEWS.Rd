@@ -4,13 +4,14 @@
 \title{sybilSBML News}
 \encoding{UTF-8}
 
-\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
+\newcommand{\CRANpkg}{\href{https://cran.r-project.org/package=#1}{\pkg{#1}}}
 
 % ---------------------------------------------------------------------------- %
-\section{Changes in version 3.0.0 2016-11-21}{
+\section{Changes in version 3.0.1 2016-12-16}{
   \itemize{
     \item sybilSBML now supports writing of SBML files.
     \item The new FBC additional package for SBML is now fully integrated.
+    \item Urls in NEWS file are now in default style.
   }
 }
 
