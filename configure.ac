@@ -1,4 +1,4 @@
-AC_INIT([sybilSBML], [3.0.0], [clausjonathan.fritzemeier@uni-duesseldorf.de])
+AC_INIT([sybilSBML], [3.0.2], [clausjonathan.fritzemeier@uni-duesseldorf.de])
 
 dnl # --------------------------------------------------------------------
 dnl # global (environment) variables
@@ -242,7 +242,7 @@ AC_CHECK_LIB([sbml], [readSBML], ,
 
 AC_CHECK_HEADER([sbml/packages/fbc/common/FbcExtensionTypes.h], ,
  AC_MSG_ERROR([Could not find specific FBC header of libSBML:
-      make sure your libSBML version is >= 5.13.]),
+      make sure your libSBML version is >= 5.13 and including the FBC package.]),
       [#include <sbml/SBMLTypes.h>])
 
 #AC_CHECK_LIB([sbml], [SBMLExtensionRegistry_getRegisteredPackages], ,
@@ -251,7 +251,7 @@ AC_CHECK_HEADER([sbml/packages/fbc/common/FbcExtensionTypes.h], ,
 
 AC_CHECK_FUNCS([SBase_getPlugin SBMLExtensionRegistry_getRegisteredPackages GeneProductAssociation_setAssociation FbcReactionPlugin_getLowerFluxBound], ,
 	AC_MSG_ERROR([Could not find specific FBC function of libSBML:
-		make sure your libSBML version is >= 5.13.]))
+		make sure your libSBML version is >= 5.13 and including the FBC package.]))
 
 #AC_SEARCH_LIBS([SBase_getPlugin], [sbml], ,
 #    AC_MSG_ERROR([Could not find specific FBC function of libSBML:
