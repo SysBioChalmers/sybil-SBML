@@ -421,20 +421,63 @@ writeSBML<- function(morg=NULL,level=2,version=4,fbcLevel=0,filename="export.xml
   ### Start newSybil attr
   if(newSybil)
   { 
-    if(("notes" %in% colnames(mod_attr(morg))) && (printNotes) ) mod_notes<-as.character(mod_attr(morg)[['notes']])
-    if(("annotation" %in% colnames(mod_attr(morg))) && (printAnnos) ) mod_annotation<-as.character(mod_attr(morg)[['annotation']])
+    if(("notes" %in% colnames(mod_attr(morg))) && (printNotes) ) {
+    	mod_notes<-as.character(mod_attr(morg)[['notes']])
+    	if(any(is.na(mod_notes))){
+    		stop("mod_notes mustn't be NA")
+    	}
+    }
+    if(("annotation" %in% colnames(mod_attr(morg))) && (printAnnos) ) {
+    	mod_annotation<-as.character(mod_attr(morg)[['annotation']])
+    	if(any(is.na(mod_annotation))){
+    		stop("mod_annotation mustn't be NA")
+    	}
+    }
     
-    if(("notes" %in% colnames(comp_attr(morg)))    && (printNotes) ) com_notes<-as.character(as.list((comp_attr(morg)[['notes']])))
-    if(("annotation" %in% colnames(comp_attr(morg))) && (printAnnos)  ) com_annotation<-as.character(as.list((comp_attr(morg)[['annotation']])))
+    if(("notes" %in% colnames(comp_attr(morg)))    && (printNotes) ){
+    	com_notes<-as.character(as.list((comp_attr(morg)[['notes']])))
+    	if(any(is.na(com_notes))){
+    		stop("com_notes mustn't be NA")
+    	}
+    }
+    if(("annotation" %in% colnames(comp_attr(morg))) && (printAnnos)  ){
+    	com_annotation<-as.character(as.list((comp_attr(morg)[['annotation']])))
+    	if(any(is.na(com_annotation))){
+    		stop("com_annotation mustn't be NA")
+    	}
+    }
     
-    if("charge" %in% colnames(met_attr(morg))) met_charge<- as.integer(as.list((met_attr(morg)[['charge']])))
-    if("chemicalFormula" %in% colnames(met_attr(morg))) met_formula<-as.character(as.list((met_attr(morg)[['chemicalFormula']])))
-    if(("annotation" %in% colnames(met_attr(morg))) && (printAnnos)) met_anno<-as.character(as.list((met_attr(morg)[['annotation']])))
-    if("boundaryCondition" %in% colnames(met_attr(morg))) met_bnd<-as.logical(as.list((met_attr(morg)[['boundaryCondition']])))
+    if("charge" %in% colnames(met_attr(morg))){
+    	met_charge<- as.integer(as.list((met_attr(morg)[['charge']])))
+    	if(any(is.na(met_charge))){
+    		stop("met_charge mustn't be NA")
+    	}
+    }
+    if("chemicalFormula" %in% colnames(met_attr(morg))){
+    	met_formula<-as.character(as.list((met_attr(morg)[['chemicalFormula']])))
+    	if(any(is.na(met_formula))){
+    		stop("met_formula mustn't be NA")
+    	}
+    }
+    if(("annotation" %in% colnames(met_attr(morg))) && (printAnnos)){
+    	met_anno<-as.character(as.list((met_attr(morg)[['annotation']])))
+    	if(any(is.na(mod_notes))){
+    		stop("met_anno mustn't be NA")
+    	}
+    }
+    if("boundaryCondition" %in% colnames(met_attr(morg))){
+    	met_bnd<-as.logical(as.list((met_attr(morg)[['boundaryCondition']])))
+    	if(any(is.na(met_bnd))){
+    		stop("met_bnd mustn't be NA")
+    	}
+    }
     
     if(("notes" %in% colnames(met_attr(morg))) && (printNotes) )
     {   # delete Formular and charge from notes to do
       met_notes<-as.character(as.list((met_attr(morg)[['notes']])))
+      if(any(is.na(met_notes))){
+    		stop("met_notes mustn't be NA")
+    	}
       if (!is.null(met_charge) || !is.null(met_formula))
       {  
         for ( i in 1:met_num(morg)) 
@@ -478,12 +521,21 @@ writeSBML<- function(morg=NULL,level=2,version=4,fbcLevel=0,filename="export.xml
       }
       
     }
-    if(("annotation" %in% colnames(react_attr(morg))) && (printAnnos)) react_anno<-as.character(as.list((react_attr(morg)[['annotation']])))
+    if(("annotation" %in% colnames(react_attr(morg))) && (printAnnos)){
+    	react_anno<-as.character(as.list((react_attr(morg)[['annotation']])))
+    	if(any(is.na(react_anno))){
+    		stop("react_anno mustn't be NA")
+    	}
+    }
     
     # Merge Notes with "our" Notes and make sure gpr Rules from gpr
     if(("notes" %in% colnames(react_attr(morg))) && (printNotes))
     {
       react_notes<-as.character(as.list((react_attr(morg)[['notes']])))
+      if(any(is.na(react_notes))){
+      	stop("react_notes mustn't be NA")
+      }
+      
       # using
       #  SubSystem EXISTIERT nicht colnames(subSys(ec))
       

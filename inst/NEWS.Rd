@@ -5,6 +5,12 @@
 \encoding{UTF-8}
 
 \newcommand{\CRANpkg}{\href{https://cran.r-project.org/package=#1}{\pkg{#1}}}
+% ---------------------------------------------------------------------------- %
+\section{Changes in version 3.0.2 2017-10-24}{
+  \itemize{
+    \item Removed bug when trying to write models with NA in, e.g. \code{met_attr}.
+  }
+}
 
 % ---------------------------------------------------------------------------- %
 \section{Changes in version 3.0.1 2016-12-16}{
