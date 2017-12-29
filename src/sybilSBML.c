@@ -58,6 +58,17 @@ along with sybilSBML.  If not, see <http://www.gnu.org/licenses/>.
 #include <sbml/packages/fbc/sbml/FbcAnd.h>
 #include <sbml/packages/fbc/sbml/FbcOr.h>
 
+/*groups plugin*/
+#include <sbml/packages/groups/common/GroupsExtensionTypes.h>
+#include <sbml/packages/groups/extension/GroupsSBMLDocumentPlugin.h>
+#include <sbml/packages/groups/extension/GroupsExtension.h>
+#include <sbml/packages/groups/extension/GroupsModelPlugin.h>
+
+#include <sbml/packages/groups/sbml/Group.h>
+#include <sbml/packages/groups/sbml/ListOfGroups.h>
+#include <sbml/packages/groups/sbml/ListOfMembers.h>
+#include <sbml/packages/groups/sbml/Member.h>
+
 
 static SEXP tagSBMLmodel;
 static SEXP tagSBMLdocument;
@@ -1161,6 +1172,41 @@ SEXP getSBMLSpeciesList(SEXP sbmlmod) {
 }
 
 
+SEXP getSBMLGroupsList(SEXP sbmlmod) {
+	GroupsModelPlugin_t  * modelPlug = NULL;
+	modelPlug = (GroupsModelPlugin_t  *) SBase_getPlugin((SBase_t *)(R_ExternalPtrAddr(sbmlmod)), "groups");
+	
+	if(modelPlug != NULL){
+		int n = GroupsModelPlugin_getNumGroups(modelPlug);
+		SEXP rgroups = PROTECT(Rf_allocVector(VECSXP, n));
+		SEXP groupnames = PROTECT(Rf_allocVector(STRSXP, n));
+		for(int i=0; i<n; i++){
+			Group_t* group = GroupsModelPlugin_getGroup(modelPlug, i);
+			if(Group_isSetName(group) == 1){ // skip group if no name is set
+				SET_STRING_ELT(groupnames, i, Rf_mkChar(Group_getName(group)));
+				
+				int m = Group_getNumMembers(group);
+				SEXP rmembers = PROTECT(Rf_allocVector(STRSXP, m));
+				for(int j=0; j < m; j++){
+					Member_t * member = Group_getMember(group, j);
+					char * memref = Member_getIdRef(member);
+					SET_STRING_ELT(rmembers, j, Rf_mkChar(memref));
+				}
+				SET_VECTOR_ELT(rgroups, i, rmembers);
+				UNPROTECT(1);
+			}else{
+				SET_VECTOR_ELT(rgroups, i, R_NilValue);
+			}
+		}
+		Rf_namesgets(rgroups, groupnames);
+		UNPROTECT(2);
+		return rgroups;
+	}else{
+		return R_NilValue;
+	}
+	return R_NilValue;
+}
+
 /* -------------------------------------------------------------------------- */
 /* get list of reactions */
 SEXP getSBMLReactionsList(SEXP sbmlmod) {
@@ -1605,7 +1651,7 @@ void ParseModtoAnno  (SBase_t* comp , char* Mannocopy)
 
 
 
-SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybil_max, SEXP mod_desc, SEXP mod_name, SEXP mod_compart, SEXP met_id, SEXP met_name, SEXP met_comp, SEXP met_form,SEXP met_charge, SEXP react_id, SEXP react_name, SEXP react_rev, SEXP lowbnd, SEXP uppbnd, SEXP obj_coef, SEXP subSys, SEXP gpr, SEXP SMatrix, SEXP mod_notes, SEXP mod_anno, SEXP com_notes , SEXP com_anno, SEXP met_notes, SEXP met_anno, SEXP met_bnd , SEXP react_notes, SEXP react_anno, SEXP ex_react,SEXP allgenes)
+SEXP exportSBML (SEXP version, SEXP level, SEXP FbcLevel, SEXP filename, SEXP sybil_max, SEXP mod_desc, SEXP mod_name, SEXP mod_compart, SEXP met_id, SEXP met_name, SEXP met_comp, SEXP met_form, SEXP met_charge, SEXP react_id, SEXP react_name, SEXP react_rev, SEXP lowbnd, SEXP uppbnd, SEXP obj_coef, SEXP subSys, SEXP subSysGroups, SEXP gpr, SEXP SMatrix, SEXP mod_notes, SEXP mod_anno, SEXP com_notes , SEXP com_anno, SEXP met_notes, SEXP met_anno, SEXP met_bnd , SEXP react_notes, SEXP react_anno, SEXP ex_react, SEXP allgenes)
 {
   //Varaibles from R
   const char* fname = CHAR(STRING_ELT(filename, 0));
@@ -1615,6 +1661,7 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
   int SBMLlevel = INTEGER(level)[0];
   int SBMLversion = INTEGER(version)[0];
   int SBMLfbcversion = INTEGER(FbcLevel)[0];
+  int SBMLgroupsversion = 1;
   double sybilmax = REAL(sybil_max)[0];
   double sybilmin = sybilmax*(-1);
   
@@ -1680,12 +1727,17 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
       SBMLExtension_t *sbmlext = SBMLExtensionRegistry_getExtension("fbc");
       
       /* create the sbml namespaces object with fbc */
-      fbc = XMLNamespaces_create();
+      XMLNamespaces_t * fbc = XMLNamespaces_create();
       XMLNamespaces_add(fbc, SBMLExtension_getURI(sbmlext, 3, 1,  SBMLfbcversion), "fbc");
       
       sbmlns = SBMLNamespaces_create(3, 1);
       SBMLNamespaces_addNamespaces(sbmlns, fbc);
       
+      /* add groups extention */
+      SBMLExtension_t *sbmlgext = SBMLExtensionRegistry_getExtension("groups");
+      XMLNamespaces_t * groups = XMLNamespaces_create();
+      XMLNamespaces_add(groups, SBMLExtension_getURI(sbmlgext, SBMLlevel, SBMLversion, SBMLgroupsversion), "groups");
+      SBMLNamespaces_addNamespaces(sbmlns, groups);
       
       /* create the document */
       sbmlDoc = SBMLDocument_createWithSBMLNamespaces(sbmlns);
@@ -2231,7 +2283,7 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
       const double *lower_bnd = REAL(lowbnd);
       const double *upper_bnd = REAL(uppbnd);
       
-      char buf[20];
+      char buf[21]; // changed from 20 to 21 to avoid buffer overflow
       // FBC1 FLUXBOUNDS
       sprintf(buf, "LOWER_BOUND%d", i);
       if (INTEGER(obj_coef)[i] != 1)
@@ -2273,6 +2325,29 @@ SEXP exportSBML (SEXP version, SEXP level,SEXP FbcLevel, SEXP filename,SEXP sybi
       
       
     }  
+  }
+  
+  /* add subsystem as groups if fbc is >= 2 */
+  if(SBMLfbcversion >= 2){
+  	if(!Rf_isNull(subSysGroups)){
+		GroupsModelPlugin_t* groupsPlug = NULL;
+  		groupsPlug = (GroupsModelPlugin_t*) SBase_getPlugin((SBase_t *)(model), "groups");
+  		
+  		for(int i=0; i < Rf_length(subSysGroups); i++){
+  			Group_t* newGroup = GroupsModelPlugin_createGroup(groupsPlug);
+			
+			Group_setKindAsString(newGroup, "partonomy");
+			Group_setName(newGroup, CHAR(STRING_ELT(Rf_getAttrib(subSysGroups, R_NamesSymbol), i)));
+			SBase_setSBOTerm((SBase_t *) newGroup, 0000633);
+  			
+  			for(int j=0; j < Rf_length(VECTOR_ELT(subSysGroups, i)); j++){
+				Member_t* newMember = Member_create(SBMLlevel, SBMLversion, SBMLgroupsversion);
+				Member_setIdRef(newMember, CHAR(STRING_ELT(VECTOR_ELT(subSysGroups, i), j)));
+				Group_addMember(newGroup, newMember);
+  			}
+  			//GroupsModelPlugin_addGroup(groupsPlug, newGroup);
+  		}
+  	}
   }
   
   // write SBML file
