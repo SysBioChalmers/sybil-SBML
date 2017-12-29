@@ -5,11 +5,11 @@ GNU R package sybilSBML: Link to libSBML for sybil
 # All Systems
 # ---------------------------------------------------------------------------- #
 
-First make sure you have installed libsbml >= 5.13 with the FBC package. At 
-http://sbml.org/Software/libSBML you can find installers for various plattforms
-and the source to compile by yourself. In this case download the file
+First make sure you have installed libsbml >= 5.13 with the FBC and groups
+package. At http://sbml.org/Software/libSBML you can find installers for various
+plattforms and the source to compile by yourself. In this case download the file
 libSBML-5.13.0-core-plus-packages-src.* from their sourceforge page and use the 
-configure option "--enable-fbc".
+configure options "--enable-fbc --enable-groups".
 
 The installation procedure for the sybilSBML package needs to know where to
 find the libSBML include directory and where to find the callable library.
@@ -17,6 +17,10 @@ find the libSBML include directory and where to find the callable library.
 # ---------------------------------------------------------------------------- #
 # Linux and MacOS X installation
 # ---------------------------------------------------------------------------- #
+
+NOTE for MacOS: Onward from OS X 10.11 you might need to deactivate the System
+Integrity Protection (SIP). Otherwise R won't be able to load the compiled
+library.
 
 There are basically four different ways of installing the sybilSBML package:
 
