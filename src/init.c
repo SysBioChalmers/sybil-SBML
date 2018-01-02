@@ -42,6 +42,7 @@ static const R_CallMethodDef callMethods[] = {
     {"getSBMLversion",             (DL_FUNC) &getSBMLversion,             1},
     {"validateDocument",           (DL_FUNC) &validateDocument,           1},
     {"getSBMLerrors",              (DL_FUNC) &getSBMLerrors,              1},
+    {"getSBMLGroupsList",          (DL_FUNC) &getSBMLGroupsList,          1},
     {"getSBMLmodel",               (DL_FUNC) &getSBMLmodel,               2},
     {"getSBMLmodId",               (DL_FUNC) &getSBMLmodId,               1},
     {"getSBMLmodName",             (DL_FUNC) &getSBMLmodName,             1},
@@ -54,7 +55,7 @@ static const R_CallMethodDef callMethods[] = {
     {"getSBMLCompartList",         (DL_FUNC) &getSBMLCompartList,         1},
     {"getSBMLSpeciesList",         (DL_FUNC) &getSBMLSpeciesList,         1},
     {"getSBMLReactionsList",       (DL_FUNC) &getSBMLReactionsList,       1},
-    {"exportSBML",                 (DL_FUNC) &exportSBML,                 33},
+    {"exportSBML",                 (DL_FUNC) &exportSBML,                 34},
     {"getSBMLFbcversion",          (DL_FUNC) &getSBMLFbcversion,          1},
     {NULL, NULL, 0}
 };

@@ -222,6 +222,17 @@ getSBMLmodAnnotation <- function(sbmlm) {
 
 #------------------------------------------------------------------------------#
 
+getSBMLGroupsList <- function(sbmlm) {
+  
+  modGroups <- .Call("getSBMLGroupsList", PACKAGE = "sybilSBML",
+                sbmlPointer(sbmlm)
+  )
+  
+  return(modGroups)
+}
+
+
+#------------------------------------------------------------------------------#
 getSBMLnumCompart <- function(sbmlm) {
 
     num <- .Call("getSBMLnumCompart", PACKAGE = "sybilSBML",
@@ -571,14 +582,20 @@ writeSBML<- function(morg=NULL,level=2,version=4,fbcLevel=0,filename="export.xml
     
   } ####END newSybil attr
   
-  # Subsystem
-  if(is.null(newsubS) && !(modhasubSys) ) for ( i in 1:react_num(morg)) {newsubS[i]<- paste(names(which(subSys(morg)[i,])), collapse=", ")}
-  
+  # format ids for sbml
   newmet_id <- paste0("M_", (deformatSBMLid(met_id(morg))))
-  #newmet_id <- sub("\\[(\\w)\\]$", "_\\1",  newmet_id) # append compartment id, if in postfix with square brkts
-  
   newreact_id <- paste0("R_", deformatSBMLid(react_id(morg)))
   newmet_comp<-mod_compart(morg)[met_comp(morg)]
+  
+  # Subsystem
+  if(is.null(newsubS) && !(modhasubSys) ) for ( i in 1:react_num(morg)) {newsubS[i]<- paste(names(which(subSys(morg)[i,])), collapse=", ")}
+  subSysGroups <- NULL
+  if(fbcLevel >= 2 && modhasubSys){
+  	subSysGroups <- apply(subSys(morg), 2, function(x){
+  		newreact_id[x]
+  	})
+  	names(subSysGroups) <- colnames(subSys(morg))
+  }
   
   
   success <-.Call("exportSBML", PACKAGE = "sybilSBML",
@@ -602,6 +619,7 @@ writeSBML<- function(morg=NULL,level=2,version=4,fbcLevel=0,filename="export.xml
                   as.numeric(uppbnd(morg)),
                   as.integer(obj_coef(morg)),
                   as.character(newsubS),
+                  subSysGroups,
                   as.character(deformatGene(gpr(morg))),
                   as.numeric(shrinkMatrix(morg,j=1:react_num(morg))),
                   mod_notes,

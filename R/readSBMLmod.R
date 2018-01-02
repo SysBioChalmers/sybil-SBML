@@ -258,9 +258,9 @@ parseNotesReact <- function(notes) {
           subSyst <- sub("SUBSYSTEM: *", "", fields_str[j])
           subSyst <- sub("^S_", "", subSyst, perl = TRUE)
           subSyst <- gsub("[_]+", " ", subSyst)
-          if (nchar(subSyst) == 0) {
-              subSyst <- "Exchange"
-          }
+          #if (nchar(subSyst) == 0) {
+          #    subSyst <- "Exchange"
+          #}
           #print(subSyst)
       }
   }
@@ -646,6 +646,9 @@ for (i in 1 : numreact) {
     
 }
 
+# get subsystem properties from the sbml groups plugin
+subSysGroups <- getSBMLGroupsList(sbmlmod)
+
 # ---------------------------------------------------------------------------- #
 # search for unused metabolites and unused reactions
 
@@ -964,7 +967,9 @@ else {
         sybil::gprRules(mod)   <- rules
         sybil::rxnGeneMat(mod) <- rxnGeneMat
         #sybil::subSys(mod)     <- subSys
-        sybil::subSys(mod)     <- sybil:::.prepareSubSysMatrix(subSys, numreact)
+        if(is.null(subSysGroups)){
+        	sybil::subSys(mod)     <- sybil:::.prepareSubSysMatrix(subSys, numreact)
+        }
 
         #sbml@gprRules <- rules
         #sbml@genes <- genes
@@ -1038,6 +1043,24 @@ if(newSybil)
   
   if( !is.null(reactannotation) && length(reactannotation)==numreact  )sybil::react_attr(mod)[['annotation']]<-reactannotation
   if( !is.null(reactnotes) && length(reactnotes)==numreact  )sybil::react_attr(mod)[['notes']]<-reactnotes
+}
+
+#------------------------------------------------------------------------------#
+#                         subSys from groups                                   #
+#------------------------------------------------------------------------------#
+
+if(!is.null(subSysGroups)){
+	subSysMat <- Matrix::Matrix(FALSE, nrow = numreact, ncol = length(subSysGroups), sparse = TRUE)
+	colnames(subSysMat) <- names(subSysGroups)
+	
+	subSysMat <- Matrix::Matrix( do.call("cbind",
+		lapply(subSysGroups, function(x){
+			ids <- formatSBMLid(sub( "^R[_]+", "", x))
+			sybil::react_id(mod) %in% ids
+		})),
+		sparse = TRUE
+	)
+	sybil::subSys(mod) <- subSysMat
 }
 
 
