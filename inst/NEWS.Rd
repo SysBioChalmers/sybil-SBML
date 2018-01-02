@@ -6,6 +6,14 @@
 
 \newcommand{\CRANpkg}{\href{https://cran.r-project.org/package=#1}{\pkg{#1}}}
 % ---------------------------------------------------------------------------- %
+\section{Changes in version 3.0.3 2018-01-02}{
+  \itemize{
+    \item Added support for the groups plugin of SBML. Now the \code{subSys} 
+    (sub system) is read and written from/to the groups plugin. This is necessary 
+    for some newer models.
+  }
+}
+% ---------------------------------------------------------------------------- %
 \section{Changes in version 3.0.2 2017-10-24}{
   \itemize{
     \item Removed bug when trying to write models with NA in, e.g. \code{met_attr}.
