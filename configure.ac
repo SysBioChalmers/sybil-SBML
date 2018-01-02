@@ -242,7 +242,12 @@ AC_CHECK_LIB([sbml], [readSBML], ,
 
 AC_CHECK_HEADER([sbml/packages/fbc/common/FbcExtensionTypes.h], ,
  AC_MSG_ERROR([Could not find specific FBC header of libSBML:
-      make sure your libSBML version is >= 5.13 and including the FBC package.]),
+      make sure your libSBML version is >= 5.16 and including the FBC package.]),
+      [#include <sbml/SBMLTypes.h>])
+
+AC_CHECK_HEADER([sbml/packages/groups/common/GroupsExtensionTypes.h], ,
+ AC_MSG_ERROR([Could not find specific groups package header of libSBML:
+      make sure your libSBML version is >= 5.16 and including the groups package.]),
       [#include <sbml/SBMLTypes.h>])
 
 #AC_CHECK_LIB([sbml], [SBMLExtensionRegistry_getRegisteredPackages], ,
