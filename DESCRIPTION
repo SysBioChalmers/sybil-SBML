@@ -9,7 +9,7 @@ Authors@R: c(person(c("C.", "Jonathan"), "Fritzemeier", role = c("cre", "ctb"), 
              person("Ardalan", "Habil", role = "ctb"))
 Maintainer: C. Jonathan Fritzemeier <clausjonathan.fritzemeier@uni-duesseldorf.de>
 Depends: R (>= 2.14.2), Matrix, sybil (>= 2.0.0)
-SystemRequirements: libSBML-core-plus-packages (>= 5.13)
+SystemRequirements: libSBML-core-plus-packages (>= 5.16)
 Imports: methods
 Description: 'SBML' (Systems Biology Markup Language) with FBC (Flux Balance Constraints) integration in 'sybil'. Many constraint based metabolic models are published in 'SBML' format ('*.xml'). Herewith is the ability to read, write, and check 'SBML' files in 'sybil' provided.
 License: GPL-3 | file LICENSE
