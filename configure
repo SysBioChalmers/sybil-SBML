@@ -3680,7 +3680,7 @@ fi
 
 #AC_CHECK_LIB([sbml], [SBMLExtensionRegistry_getRegisteredPackages], ,
 #    AC_MSG_ERROR([Could not find specific FBC function of libSBML:
-#		make sure your libSBML version is >= 5.13.]))
+#		make sure your libSBML version is >= 5.16.]))
 
 for ac_func in SBase_getPlugin SBMLExtensionRegistry_getRegisteredPackages GeneProductAssociation_setAssociation FbcReactionPlugin_getLowerFluxBound
 do :
@@ -3693,24 +3693,24 @@ _ACEOF
 
 else
   as_fn_error $? "Could not find specific FBC function of libSBML:
-		make sure your libSBML version is >= 5.13 and including the FBC package." "$LINENO" 5
+		make sure your libSBML version is >= 5.16 and including the FBC package." "$LINENO" 5
 fi
 done
 
 
 #AC_SEARCH_LIBS([SBase_getPlugin], [sbml], ,
 #    AC_MSG_ERROR([Could not find specific FBC function of libSBML:
-#      make sure your libSBML version is >= 5.13.]))
+#      make sure your libSBML version is >= 5.16.]))
 
 #AC_SEARCH_LIBS([SBMLExtensionRegistry_getRegisteredPackages], [sbml], ,
 #    AC_MSG_ERROR([Could not find specific FBC function of libSBML:
-#      make sure your libSBML version is >= 5.13.]))
+#      make sure your libSBML version is >= 5.16.]))
 
 
 
 #AC_SEARCH_LIBS([GeneProductAssociation_setAssociation], [sbml], ,
 #    AC_MSG_ERROR([Could not find specific FBC function of libSBML:
-#      make sure your libSBML version is >= 5.13.]))
+#      make sure your libSBML version is >= 5.16.]))
 
 
 
