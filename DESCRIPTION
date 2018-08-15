@@ -1,13 +1,14 @@
 Package: sybilSBML
 Type: Package
 Title: SBML Integration in Package 'Sybil'
-Version: 3.0.4
-Date: 2018-03-26
-Authors@R: c(person(c("C.", "Jonathan"), "Fritzemeier", role = c("cre", "ctb"), email = "clausjonathan.fritzemeier@uni-duesseldorf.de"),
-			 person("Gabriel", "Gelius-Dietrich", role = c("aut", "ctb")),
+Version: 3.0.5
+Date: 2018-08-15
+Authors@R: c(person("Mayo", "Roettger", role = "cre", email = "mayo.roettger@hhu.de"),
+             person("Gabriel", "Gelius-Dietrich", role = c("aut", "ctb")),
+             person(c("C.", "Jonathan"), "Fritzemeier", role = "ctb", email = "clausjonathan.fritzemeier@uni-duesseldorf.de"),
              person("Deya", "Alzoubi", role = "ctb"),
              person("Ardalan", "Habil", role = "ctb"))
-Maintainer: C. Jonathan Fritzemeier <clausjonathan.fritzemeier@uni-duesseldorf.de>
+Maintainer: Mayo Roettger <mayo.roettger@hhu.de>
 Depends: R (>= 2.14.2), Matrix, sybil (>= 2.0.0)
 SystemRequirements: libSBML-core-plus-packages (>= 5.16)
 Imports: methods
@@ -16,9 +17,10 @@ License: GPL-3 | file LICENSE
 LazyLoad: yes
 Collate: generics.R sbmlPtrClass.R sbmlErrorClass.R sybilSBML.R
         uglyHack.R readSBMLmod.R zzz.R
-Packaged: 2018-03-26 07:11:55 UTC; jonathan
-Author: C. Jonathan Fritzemeier [cre, ctb],
+Packaged: 2018-08-15 11:37:00 UTC; mayo
+Author: Mayo Roettger [cre],
   Gabriel Gelius-Dietrich [aut, ctb],
+  C. Jonathan Fritzemeier [ctb],
   Deya Alzoubi [ctb],
   Ardalan Habil [ctb]
 NeedsCompilation: yes
