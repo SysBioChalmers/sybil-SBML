@@ -1,4 +1,4 @@
-AC_INIT([sybilSBML], [3.0.2], [clausjonathan.fritzemeier@uni-duesseldorf.de])
+AC_INIT([sybilSBML], [3.0.6], [mayo.roettger@hhu.de])
 
 dnl # --------------------------------------------------------------------
 dnl # global (environment) variables
@@ -222,7 +222,7 @@ dnl # --------------------------------------------------------------------
 dnl # check header and library
 dnl # --------------------------------------------------------------------
 
-LIBS="${PKG_LIBS}"
+LIBS="${LIBS} ${PKG_LIBS}"
 CFLAGS="${CFLAGS} ${PKG_CFLAGS}"
 CPPFLAGS="${CPPFLAGS} ${PKG_CPPFLAGS}"
 
@@ -230,7 +230,6 @@ AC_CHECK_HEADER([sbml/SBMLTypes.h], ,
     AC_MSG_ERROR([Could not find SBMLTypes.h:
       sybilSBML requires libSBML from http://www.sbml.org/.
       use --with-sbml-include or PKG_CPPFLAGS to specify the include path.]))
-
 
 AC_SEARCH_LIBS([readSBML], [sbml], ,
     AC_MSG_ERROR([Could not link to libSBML:
