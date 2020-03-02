@@ -52,5 +52,7 @@ readSBMLmod,
 writeSBML,
 getSBMLFbcversion,
 getSBMLmodNotes,
-getSBMLmodAnnotation
+getSBMLmodAnnotation,
+isAvailableFbcPlugin,
+isAvailableGroupsPlugin
 )

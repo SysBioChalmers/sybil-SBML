@@ -57,12 +57,13 @@ on.exit(expr = {
 } )
 
 #------------------------------------------------------------------------------#
-# open the model file
+# Does the model file exist?
 
 if ( file.exists(filename) == FALSE ) {
    stop("failed to open file ", sQuote(filename))
 }
 
+# set description to filename, if not set
 if (missing(description)) {
     mdesc <- filename
 }
@@ -96,6 +97,7 @@ entryforS <- function(X) {
     CURR_MET <- character(n) # metabolites in X
 
     t <- 0
+    # over all metabolite IDs:
     for (i in seq(along = X[["species"]])) {
         t <- t + 1
 
@@ -104,21 +106,23 @@ entryforS <- function(X) {
         # The metabolite id's are removed from the metabolites list,
         # but not from the reactions list.
 
-        CURR_MET[t] <- X[["species"]][i]
+        CURR_MET[t] <- X[["species"]][i]    # get current metabolite ID
+
         if (isTRUE(mergeMet)) {
+            # find out, if the current metabolite is already in the list and remember matching position in CURR_MET vector:
             met_indCURR <- match(CURR_MET[t], CURR_MET[-t])
         }
         else {
             met_indCURR <- NA
         }
 
-        if (is.na(met_indCURR)) {
+        if (is.na(met_indCURR)) {# if we don't have to merge metabolite --> check this!####
             sj[t]     <- match(X[["species"]][i], met_id_tmp)    # the row number
             s_ji[t]   <- X[["stoichiometry"]][i]
-            remMet[t] <- ifelse(is.na(sj[t]), FALSE, TRUE)
+            remMet[t] <- ifelse(is.na(sj[t]), FALSE, TRUE)    # 
 
         }
-        else {
+        else {# we have to merge metabolite --> check this!####
             remMet[t] <- FALSE
             s_ji[met_indCURR] <- s_ji[met_indCURR] + X[["stoichiometry"]][i]
             msg <- paste("reaction no.", i, dQuote(react_id_tmp[i]),
@@ -211,6 +215,8 @@ formatSBMLid <- function(idstr) {
 
 #------------------------------------------------------------------------------#
 # parse the notes field of the reactions
+# (notes is a character string)
+# extract gpr rules and subsystem from notes
 #------------------------------------------------------------------------------#
 
 parseNotesReact <- function(notes) {
@@ -226,35 +232,49 @@ parseNotesReact <- function(notes) {
   #split <- "\n"
 
   fields <- strsplit(notes, split, fixed = TRUE)
- # print(fields)
+  # print(fields)
+  # fields now contains a list in which each item is a vector with the strings separated by the <p> or <html:p> respectively
+  # we only have one element in the list here.
+  
 
+  # extract the actual notes between the opening and closing tags:
   start_tag  <- paste("<", tag, ">", sep = "")
   end_tag    <- paste("</", tag, ">", sep = "")
   regex      <- paste("^(?:[\\t]*\\Q", start_tag, "\\E)?", "(.*)", "\\Q", end_tag, "\\E", "(?s).*$", sep = "")
-#  regex      <- paste("(.*)", end_tag, "(?s).*$", sep = "")
+  #regex      <- paste("(.*)", end_tag, "(?s).*$", sep = "")
   #print(regex)
 
   fields_str <- sub(regex, "\\1", fields[[1]], perl = TRUE)
   #print(fields_str)
+  # fields_str should now contain a vector of the actual notes without surrounding tags
 
-  subSyst   <- ""
-  gpr       <- ""
+  
+  # extract gpr rule (genes and rules) and subsystem from notes:
+  subSyst   <- ""# no sub system
+  gpr       <- ""# no gene to protein to reaction interaction
   gene_rule <- NA
 
   for (j in 1:length(fields_str)) {
+      # Do we have a "GENE_ASSOCIATION" or "GENE ASSOCIATION" or GENEASSOCIATION?
       if (grepl("GENE[_ ]?ASSOCIATION", fields_str[j])) {
       #if (charmatch("GENE", fields_str[j], nomatch = -1) != -1) {
-          gpr <- sub("GENE[_ ]?ASSOCIATION: *", "", fields_str[j])
-          gene_rule <- sybil:::.parseBoolean(gpr)
+          gpr <- sub("GENE[_ ]?ASSOCIATION: *", "", fields_str[j])# delete the text, remaining gpr
+          
+          # get the unique gene names and the rule with the x[gene number] codes:
+          gene_rule <- sybil:::.parseBoolean(gpr)# parse gene rule
           #print(gene_rule)
-    
+      
       }#Ardalan Habil
+      # Or do we have a "GPR_ASSOCIATION" or "GPR ASSOCIATION" or GPRASSOCIATION?
       else if (grepl("GPR[_ ]?ASSOCIATION", fields_str[j])) {
         gpr <- sub("GPR[_ ]?ASSOCIATION: *", "", fields_str[j])
+        # get the unique gene names and the rule with the x[gene number] codes:
         gene_rule <- sybil:::.parseBoolean(gpr)
-      }  
-
+      }
+      
+      # Do we have a "SUBSYSTEM"?
       if (charmatch("SUBSYSTEM", fields_str[j], nomatch = -1) != -1) {
+          # remove SUBSYSTEM with trailing trailing spaces, then remove the S_ at the beginning, then exchange all _ by  spaces:
           subSyst <- sub("SUBSYSTEM: *", "", fields_str[j])
           subSyst <- sub("^S_", "", subSyst, perl = TRUE)
           subSyst <- gsub("[_]+", " ", subSyst)
@@ -267,7 +287,8 @@ parseNotesReact <- function(notes) {
   if (!is.list(gene_rule)) {
       gene_rule <- sybil:::.parseBoolean("")
   }
-
+  
+  # return sub system, genes, and rules:
   return(list(sub_system = subSyst, genes = gene_rule$gene, rules = gene_rule$rule, gpr = gpr))
 
 }
@@ -289,6 +310,16 @@ sbmldoc <- openSBMLfile(filename)
 
 message("OK")
 
+# warning, if FBC plugin is missing:
+if (isAvailableFbcPlugin() == FALSE) {
+    warning("Missing FBC-plugin for libSBML. FBC constraints will be ignored.")
+}
+
+# warning, if Groups plugin is missing:
+if (isAvailableGroupsPlugin() == FALSE) {
+    warning("Missing Groups-plugin for libSBML. Groups will be ignored.")
+}
+
 # warning if new Version/Level/
 SBMLlevel<- getSBMLlevel(sbmldoc)
 SBMLversion<- getSBMLversion(sbmldoc)
@@ -297,6 +328,7 @@ if(SBMLlevel == 3 && SBMLversion > 1)
   warning(paste("No support for Level 3 Version ",SBMLversion))
 if (FBCversion > 2)
   warning(paste("No support for Fbc Version ",FBCversion))
+
 
 #------------------------------------------------------------------------------#
 #                              check the model                                 #
@@ -442,24 +474,24 @@ if (is.null(metabolitesList)) {
 }
 
 missingId(metabolitesList)
-metSpIds        <- metabolitesList[["id"]]
+metSpIds        <- metabolitesList[["id"]]# Metabolites IDs
 #nummet          <- getSBMLnumSpecies(sbmlmod)
 
 
 if (isTRUE(bndCond)) {
-    metSpBnd <- metabolitesList[["boundaryCondition"]]
-    met_id_pos <- !metSpBnd
+    metSpBnd <- metabolitesList[["boundaryCondition"]]# TRUE for external, FALSE for internal metabolites
+    met_id_pos <- !metSpBnd# TRUE for internal metabolites
 }
 else {
     # regular expression to identify external metabolites
     extMetRegEx <- paste("_", extMetFlag, "$", sep = "")
-    met_id_pos  <- grep(extMetRegEx, metSpIds, invert = TRUE)
+    met_id_pos  <- grep(extMetRegEx, metSpIds, invert = TRUE)# positions of internal metabolites
 }
 
-met_id_tmp <- metSpIds[met_id_pos]
+met_id_tmp <- metSpIds[met_id_pos]# IDs of internal metabolites
 
 # number of metabolites
-nummet <- length(met_id_tmp)
+nummet <- length(met_id_tmp)# No. internal metabolites
 
 
 #------------------------------------------------------------------------------#
@@ -515,33 +547,35 @@ for (i in 1 : numreact) {
     
     # Notes und Annotation can be null ( @Ardalan Habil)
     if(!is.null( reactionsList[["notes"]])) 				
-    if (nchar(notes) > 0) {
+        if (nchar(notes) > 0) {
 
-        hasNotes    <- TRUE
-        notes_field <- parseNotesReact(notes)
-        #print(notes_field)
-        subSys[i]   <- notes_field$sub_system   # the reaction's sub system: glykolysis, TCA, ...
-        genes[[i]]  <- notes_field$genes        # list of genes
-        rules[i]    <- notes_field$rules        # rules
-        gpr[i]      <- notes_field$gpr          # original gpr association
-        #allGenes    <- c(allGenes, genes[[i]])
+            hasNotes    <- TRUE
+            notes_field <- parseNotesReact(notes)
+            #print(notes_field)
+            subSys[i]   <- notes_field$sub_system   # the reaction's sub system: glykolysis, TCA, ...
+            genes[[i]]  <- notes_field$genes        # list of genes
+            rules[i]    <- notes_field$rules        # rules
+            gpr[i]      <- notes_field$gpr          # original gpr association
+            #allGenes    <- c(allGenes, genes[[i]])
 
-    }
-    else {
-	 if(!is.null( reactionsList[["annotation"]]))	
-        if (nchar(annot) > 0) {
-            hasAnnot    <- TRUE
-            pn <- regexpr("Pathway Name: [^<]+", annot, perl = TRUE)
-            subSys[i] <- substr(annot, (pn+14), pn + ((attr(pn, "match.length"))-1))
+        }
+        else {
+	      if(!is.null( reactionsList[["annotation"]]))	
+              if (nchar(annot) > 0) {
+                  hasAnnot    <- TRUE
+                  pn <- regexpr("Pathway Name: [^<]+", annot, perl = TRUE)
+                  subSys[i] <- substr(annot, (pn+14), pn + ((attr(pn, "match.length"))-1))
         }
 
     }
-     
-    	
-
+    
+    
+    
+    # get flux balance constraints, if fbcgprRules not null
     fbcgene_rule <- NA
     if ( !is.null(fbcgprRules))
     { 
+      # get the unique gene names and the rule with the x[gene number] codes:
       fbcgene_rule<- sybil:::.parseBoolean(fbcgprRules[i])
       
       genes[[i]]  <- fbcgene_rule$gene      # list of genes
@@ -549,12 +583,15 @@ for (i in 1 : numreact) {
       gpr[i]      <- fbcgprRules[i]  
     }	
 
+
+
     # Check here if reactants and products lists exist, same for the stoichiometry slot
 
     # Entries for S -- the reactants
-    S_tmp <- entryforS(reactionsList[["reactants"]][[i]])
+    S_tmp <- entryforS(reactionsList[["reactants"]][[i]])# todo: have to give i and met_id_tmp as argument, right now they are global (confusing)
     #print(S_tmp)
     if (is.list(S_tmp) == TRUE) {
+        # set stoichiometric matrix, values are set negative (reactants)
         St[S_tmp$sj, i] <- (S_tmp$s_ji * -1)
         #St[S_tmp$sj, S_tmp$si] <- (S_tmp$s_ji * -1)
     }
@@ -638,16 +675,18 @@ for (i in 1 : numreact) {
     }
   }
   #FBC Objective @Ardalan Habil
-    if(!is.null(fbcObjectives))
-    {
+  if(!is.null(fbcObjectives))
+  {
       ocof[i]<-as.numeric(fbcObjectives[i])
-    }  
+  }
     
     
 }
 
 # get subsystem properties from the sbml groups plugin
 subSysGroups <- getSBMLGroupsList(sbmlmod)
+
+
 
 # ---------------------------------------------------------------------------- #
 # search for unused metabolites and unused reactions
@@ -699,6 +738,7 @@ if ( any(SKIP_REACTION == FALSE) ) {
     warning(msg, call. = FALSE)
 }
 
+# if we do not want to remove, mark them as to skip
 if (!isTRUE(remUnusedMetReact)) {
     SKIP_METABOLITE[!SKIP_METABOLITE] <- TRUE
     SKIP_REACTION[!SKIP_REACTION]     <- TRUE
@@ -867,6 +907,7 @@ if (isTRUE(deadEndMet)) {
 # ---------------------------------------------------------------------------- #
 # S
 
+# only keep metabolites and reactions where SKIP mark is TRUE, remove the rest
 St <- St[SKIP_METABOLITE, , drop = FALSE]
 St <- St[ , SKIP_REACTION, drop = FALSE]
 
@@ -925,21 +966,22 @@ if (isTRUE(ignoreNoAn)) {
     sybil::subSys(mod)     <- Matrix::Matrix(FALSE, nrow = numreact, ncol = 1, sparse = TRUE)
 }
 else {
-
     subSys <- subSys[SKIP_REACTION]
     genes  <- genes[SKIP_REACTION]
     rules  <- rules[SKIP_REACTION]
     gpr    <- gpr[SKIP_REACTION]
-
+    
+    # if there were fbcgprRules or notes with gpr rules,
+    # create reaction x nGene matrix, with TRUE for respective genes for each reaction
     if (isTRUE(hasNotes) ||  !is.null(fbcgprRules) ) {
         message("GPR mapping ... ", appendLF = FALSE)
 
+        # Vector with all gene names != "":
         #allGenes <- unique(allGenes)
         #allGenesTMP <- unique(allGenes)
         allGenesTMP <- unique(unlist(genes))
         temp <- nchar(allGenesTMP)
         allGenes <- allGenesTMP[which(temp != 0)]
-
 
         rxnGeneMat <- Matrix::Matrix(FALSE,
                                      nrow = numreact,
@@ -947,11 +989,13 @@ else {
                                      sparse = TRUE)
 
         for (i in 1 : numreact) {
-
+            # if genes list element i has only 1 element and that element is not equal ""
             if ( (length(genes[[i]] == 1)) && (genes[[i]] != "") ) {
-                geneInd <- match(genes[[i]], allGenes)
+                geneInd <- match(genes[[i]], allGenes)# find gene in allGenes
+                # Mark which genes are used in reaction with TRUE
                 rxnGeneMat[i, geneInd] <- TRUE
     
+                # exchange x(j) with x[j] for each gene index: 
                 for (j in 1 : length(geneInd)) {
                     pat  <- paste("x(", j, ")", sep = "")
                     repl <- paste("x[", geneInd[j], "]", sep = "")
@@ -961,6 +1005,7 @@ else {
             }
         }
 
+        # 
         sybil::genes(mod)      <- genes
         sybil::gpr(mod)        <- gpr
         sybil::allGenes(mod)   <- allGenes
@@ -979,13 +1024,15 @@ else {
 
         message("OK")
     }
-    else {
+    else {# no notes and no fbcgprRules:
         sybil::rxnGeneMat(mod) <- Matrix::Matrix(NA, nrow = 0, ncol = 0)
         if (isTRUE(hasAnnot)) {
+            # then we extracted the subsystem from annotation, so set it: 
             #subSys(sbml)     <- subSys
             sybil::subSys(mod) <- sybil:::.prepareSubSysMatrix(subSys, numreact)
         }
         else {
+            # No subsystems:
             sybil::subSys(mod) <- Matrix::Matrix(FALSE,
                                                  nrow = numreact,
                                                  ncol = 1,
@@ -1050,6 +1097,7 @@ if(newSybil)
 #------------------------------------------------------------------------------#
 
 if(!is.null(subSysGroups)){
+    # sub system groups for each reaction from subSysGroups:
 	subSysMat <- Matrix::Matrix(FALSE, nrow = numreact, ncol = length(subSysGroups), sparse = TRUE)
 	colnames(subSysMat) <- names(subSysGroups)
 	
@@ -1072,6 +1120,7 @@ modanno<-getSBMLmodAnnotation(sbmlmod)
 modnotes<-getSBMLmodNotes(sbmlmod)
 if(newSybil)
 {
+  # set model annotation and notes:
   sybil::mod_attr(mod)  <-data.frame(row.names=1)
   if(nchar(modanno)>1)sybil::mod_attr(mod)[['annotation']]<-modanno
   if(nchar(modnotes)>1)sybil::mod_attr(mod)[['notes']]<-modnotes
@@ -1082,6 +1131,7 @@ if(newSybil)
 #------------------------------------------------------------------------------#
 #                         compartments Attr @Ardalan                           #
 #------------------------------------------------------------------------------#
+# set comp_attr slot for model with 'annotation' and 'notes' from values in compartmentsList:
 # Define SKIP_COMPARTMENT FALSE= HAS NO REFERENCE
 met_comp_tmp <- metabolitesList[["compartment"]][met_id_pos][SKIP_METABOLITE]
 SKIP_COMPARTMENT<- comp_tmp_id %in% unique(met_comp_tmp)
@@ -1165,29 +1215,38 @@ if(newSybil)
   # save attributes to met_attr slot
   sybil::met_attr(mod)  <-data.frame(row.names=1:nummet)
   if( !is.null(metformula) && length(metformula)==nummet)
-  {sybil::met_attr(mod)[['chemicalFormula']]<-metformula}
+  {
+      sybil::met_attr(mod)[['chemicalFormula']]<-metformula
+  }
   else{
     if(length(metformulanote)==nummet)
-    { if(max(nchar(metformulanote)) >0)
-      sybil::met_attr(mod)[['chemicalFormula']]<-metformulanote 
+    {
+        if(max(nchar(metformulanote)) >0)
+            sybil::met_attr(mod)[['chemicalFormula']]<-metformulanote 
     }  
   }
   if( !is.null(metcharge) && length(metcharge)==nummet && sum(metcharge)!=0)
-  {sybil::met_attr(mod)[['charge']]<-metcharge}
+  {
+      sybil::met_attr(mod)[['charge']]<-metcharge
+  }
   else{
     if(  length(metchargenote)==nummet)
-    {  if(max(nchar(metchargenote)) >0)
-      sybil::met_attr(mod)[['charge']]<-metchargenote 
+    {
+        if(max(nchar(metchargenote)) >0)
+            sybil::met_attr(mod)[['charge']]<-metchargenote 
     }  
   }
-  if( !is.null(metnotes) && length(metnotes)==nummet)sybil::met_attr(mod)[['notes']]<-metnotes 
-  if( !is.null(metannotation) && length(metannotation)==nummet)sybil::met_attr(mod)[['annotation']]<-metannotation
+  if( !is.null(metnotes) && length(metnotes)==nummet)
+      sybil::met_attr(mod)[['notes']]<-metnotes 
+  if( !is.null(metannotation) && length(metannotation)==nummet)
+      sybil::met_attr(mod)[['annotation']]<-metannotation
   
   # Save boundaryCondition when bndCond=FALSE
   if (!isTRUE(bndCond)) {
     metBnd <- metabolitesList[["boundaryCondition"]][met_id_pos][SKIP_METABOLITE]
     # When all metBnd = False -> metabolite removed by extMetFlag
-    if( !is.null(metBnd) && length(metBnd)==nummet && !all(metBnd == FALSE) )sybil::met_attr(mod)[['boundaryCondition']]<-metBnd
+    if( !is.null(metBnd) && length(metBnd)==nummet && !all(metBnd == FALSE) )
+        sybil::met_attr(mod)[['boundaryCondition']]<-metBnd
   }
   
   

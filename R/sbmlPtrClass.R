@@ -60,7 +60,7 @@ setMethod(f = "initialize",
 )
 
 
-# contructor for pointers to sbml documents
+# constructor for pointers to sbml documents
 sbmlDocPointer <- function(pointer) {
 
     if (is(pointer, "sbml_doc_ptr")) {

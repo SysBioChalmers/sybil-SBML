@@ -21,7 +21,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with sybilSBML.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+#include "config.h"
 
 #include "sybilSBML.h"
 
@@ -35,6 +35,7 @@ along with sybilSBML.  If not, see <http://www.gnu.org/licenses/>.
 #include <sbml/math/ASTNode.h>
 #include <math.h>
 
+#ifdef HAVE_FBC_PLUGIN
 /* FBCv1includes  */
 
 #include <sbml/extension/SBMLExtensionRegister.h>
@@ -57,7 +58,9 @@ along with sybilSBML.  If not, see <http://www.gnu.org/licenses/>.
 #include <sbml/packages/fbc/sbml/FbcAssociation.h>
 #include <sbml/packages/fbc/sbml/FbcAnd.h>
 #include <sbml/packages/fbc/sbml/FbcOr.h>
+#endif
 
+#ifdef HAVE_GROUPS_PLUGIN
 /*groups plugin*/
 #include <sbml/packages/groups/common/GroupsExtensionTypes.h>
 #include <sbml/packages/groups/extension/GroupsSBMLDocumentPlugin.h>
@@ -68,6 +71,7 @@ along with sybilSBML.  If not, see <http://www.gnu.org/licenses/>.
 #include <sbml/packages/groups/sbml/ListOfGroups.h>
 #include <sbml/packages/groups/sbml/ListOfMembers.h>
 #include <sbml/packages/groups/sbml/Member.h>
+#endif
 
 
 static SEXP tagSBMLmodel;
@@ -387,8 +391,9 @@ SEXP getSBMLversion(SEXP sbmldoc) {
 
 /* get sbml document  FBC version */
 SEXP getSBMLFbcversion(SEXP sbmldoc) {
-  
   SEXP out = R_NilValue;
+  
+#ifdef HAVE_FBC_PLUGIN
   unsigned int version;
   
   checkDocument(sbmldoc);
@@ -403,7 +408,9 @@ SEXP getSBMLFbcversion(SEXP sbmldoc) {
   } else version=0;  
   
   out = Rf_ScalarInteger(version);
-  
+#else
+  out = Rf_ScalarInteger(0);
+#endif
   return out;
 }
 
@@ -1041,6 +1048,7 @@ SEXP getSBMLSpeciesList(SEXP sbmlmod) {
     PROTECT(metannot  = Rf_allocVector(STRSXP, nsp));
     PROTECT(metnotes  = Rf_allocVector(STRSXP, nsp));
     
+    int chargecount = 0;
     int chcount=0;
     int notescount=0;
     int annotcount=0;
@@ -1106,30 +1114,35 @@ SEXP getSBMLSpeciesList(SEXP sbmlmod) {
       else {
         SET_STRING_ELT(metannot, i, Rf_mkChar(""));
       }
-      
-      
+
+
+#ifdef HAVE_FBC_PLUGIN
       /* FBC PLUGIN @ Ardalan */
       SBasePlugin_t *SpeciesPlug = SBase_getPlugin((SBase_t *)(splel), "fbc");
       
-      /* FBCcharge */
-      if (FbcSpeciesPlugin_isSetCharge(SpeciesPlug)) {
-        INTEGER(metcharge)[i] = FbcSpeciesPlugin_getCharge(SpeciesPlug);
+      /* get charge and chemical formula from FBC plugin: */
+      if (SpeciesPlug != NULL) {
+          /* FBCcharge */
+          if (FbcSpeciesPlugin_isSetCharge(SpeciesPlug)) {
+              INTEGER(metcharge)[i] = FbcSpeciesPlugin_getCharge(SpeciesPlug);
+              chargecount = chargecount + 1;
+          }
+          
+          /* FBC chemicalFormula */
+          if (FbcSpeciesPlugin_isSetChemicalFormula(SpeciesPlug)) {
+              SET_STRING_ELT(metchemic, i, Rf_mkChar(FbcSpeciesPlugin_getChemicalFormula(SpeciesPlug)));
+              chcount=chcount+1;
+          }
+          else {
+              SET_STRING_ELT(metchemic, i, Rf_mkChar(""));
+          }
       }
-      
-      /* FBC chemicalFormula */
-      if (FbcSpeciesPlugin_isSetChemicalFormula(SpeciesPlug)) {
-        SET_STRING_ELT(metchemic, i, Rf_mkChar(FbcSpeciesPlugin_getChemicalFormula(SpeciesPlug)));
-        chcount=chcount+1;
-      }
-      else {
-        SET_STRING_ELT(metchemic, i, Rf_mkChar(""));
-      }
-      
-      
+#endif
     }
     
-    // NULL if empty 
-    if (chcount==0)    metchemic = R_NilValue;
+    // NULL if empty
+    if (chargecount == 0) metcharge = R_NilValue;
+    if (chcount==0) metchemic = R_NilValue;
     if (notescount==0) metnotes  = R_NilValue;
     if (annotcount==0)  metannot  = R_NilValue;
     
@@ -1173,6 +1186,7 @@ SEXP getSBMLSpeciesList(SEXP sbmlmod) {
 
 
 SEXP getSBMLGroupsList(SEXP sbmlmod) {
+#ifdef HAVE_GROUPS_PLUGIN
 	GroupsModelPlugin_t  * modelPlug = NULL;
 	modelPlug = (GroupsModelPlugin_t  *) SBase_getPlugin((SBase_t *)(R_ExternalPtrAddr(sbmlmod)), "groups");
 	
@@ -1204,6 +1218,7 @@ SEXP getSBMLGroupsList(SEXP sbmlmod) {
 	}else{
 		return R_NilValue;
 	}
+#endif
 	return R_NilValue;
 }
 
@@ -1244,6 +1259,7 @@ SEXP getSBMLReactionsList(SEXP sbmlmod) {
   checkModel(sbmlmod);
   
   /* rel = Model_getListOfReactions(R_ExternalPtrAddr(sbmlmod)); */
+  /* get number of ractions: */
   nre = Model_getNumReactions(R_ExternalPtrAddr(sbmlmod));
   
   if (nre > 0) {
@@ -1270,29 +1286,31 @@ SEXP getSBMLReactionsList(SEXP sbmlmod) {
     int notescount=0;
     
     /* Help Var for Fbc Objective*/
-    double Objcoeff =0;
+    double Objcoeff = 0;
     const char* Objreaction = NULL;
     char* objActiv = NULL;
     int fbcversion = 0;
+ 
     
-    /* FBC OBJECTIV @Ardalan*/
-    Objective_t * objective;
-    FluxObjective_t * fluxObjective;
     SBasePlugin_t * modelPlug= NULL;
     
+    #ifdef HAVE_FBC_PLUGIN
+    /* FBC OBJECTIV @Ardalan*/
+    Objective_t * objective = NULL;
+    FluxObjective_t * fluxObjective = NULL;
     modelPlug = SBase_getPlugin((SBase_t *)(R_ExternalPtrAddr(sbmlmod)), "fbc");
     
     // Read the Objectives when FBCPlugin for the model exists
+    // (Save only active objective)
     if( modelPlug != NULL)
     { 
       
       objActiv = FbcModelPlugin_getActiveObjectiveId(modelPlug);
-      int ob=0;
       if(strcmp(objActiv,"") !=0)
       {
-        for(ob; ob< FbcModelPlugin_getNumObjectives(modelPlug);ob++)
+        for(int ob = 0; ob < FbcModelPlugin_getNumObjectives(modelPlug); ob++)
         {
-          objective= FbcModelPlugin_getObjective(modelPlug,ob);
+          objective = FbcModelPlugin_getObjective(modelPlug,ob);
           //printf("ObjectiveID: %s \n",  Objective_getId(objective) );
           if(strcmp(objActiv,Objective_getId(objective))==0)
           { // TODO mehrer FLUXOBJECTIVE; MAXimierung Minimirung? 
@@ -1300,8 +1318,8 @@ SEXP getSBMLReactionsList(SEXP sbmlmod) {
             //  int fob=0;
             //  for(fob; ob<FbcModelPlugin_getNumObjectives(modelPlug);fob++ )
             //  {  
-            fluxObjective= Objective_getFluxObjective(objective,0);
-            Objreaction=  FluxObjective_getReaction(fluxObjective) ;
+            fluxObjective = Objective_getFluxObjective(objective,0);
+            Objreaction =  FluxObjective_getReaction(fluxObjective) ;
             Objcoeff =  FluxObjective_getCoefficient(fluxObjective);
             
             //printf("ReactionObjectiveID: %s \n",  Objreaction);
@@ -1318,7 +1336,8 @@ SEXP getSBMLReactionsList(SEXP sbmlmod) {
       
       if(strcmp("fbc",SBasePlugin_getPackageName(modelPlug) ) ==0)
         fbcversion = SBasePlugin_getPackageVersion(modelPlug);
-    }  
+    } 
+#endif 
     
     
     for (i = 0; i < nre; i++) {
@@ -1368,119 +1387,131 @@ SEXP getSBMLReactionsList(SEXP sbmlmod) {
         SET_STRING_ELT(reactannot, i, Rf_mkChar(""));
       }
       
+      
+#ifdef HAVE_FBC_PLUGIN
       /* FBC LEVEL 2 @Ardalan Habil*/
       
       /* ReactionPLugin for FBC 2 */
       SBasePlugin_t *reactionPlug = SBase_getPlugin((SBase_t *)(relel), "fbc");
       
-      
-      /* LOWERFLUXBOUND */
-      if (FbcReactionPlugin_isSetLowerFluxBound(reactionPlug)) 
-      {
-        parm = Model_getParameterById(R_ExternalPtrAddr (sbmlmod) ,FbcReactionPlugin_getLowerFluxBound(reactionPlug));
-        //printf("LowerFLUXBOUND: %f \n",  Parameter_getValue(parm));
-        REAL(fbclb)[i] = Parameter_getValue(parm);
-        lbcount=lbcount+1;
-      }
-      else{
-        REAL(fbclb)[i] = 0;
-      }      
-      
-      /* UPPERFLUXBOUND*/
-      if (FbcReactionPlugin_isSetUpperFluxBound(reactionPlug)) 
-      {
-        parm = Model_getParameterById(R_ExternalPtrAddr (sbmlmod) ,FbcReactionPlugin_getUpperFluxBound(reactionPlug));
-        //printf("UPPERFLUXBOUND: %f \n",  Parameter_getValue(parm));
-        REAL(fbcup)[i] = Parameter_getValue(parm);
-        upcount=upcount+1;
-      }
-      else{
-        REAL(fbcup)[i] = 0;
-      }
-      
-      /*FBC 1 read */
-      if (fbcversion==1)
-      {
-        /* Storing FBC1Bounds */
-        double fbc1lb=0;
-        double fbc1up=0;
-        
-        
-        int fluxb=0;
-        for(fluxb; fluxb< FbcModelPlugin_getNumFluxBounds(modelPlug);fluxb++)
-        {
-          FluxBound_t * currentFlux = FbcModelPlugin_getFluxBound(modelPlug,fluxb);
-          
-          const char * currentFluxType ;
-          const char * currentFluxReaction; 
-          
-          if (FluxBound_isSetReaction(currentFlux))  currentFluxReaction = FluxBound_getReaction(currentFlux);
-          else continue;
-          
-          if(strcmp(currentFluxReaction , Reaction_getId(relel) ) !=0) continue;
-          
-          
-          if (FluxBound_isSetOperation(currentFlux)) currentFluxType = FluxBound_getOperation(currentFlux);
-          else continue;  
-          
-          
-          if(strcmp("greaterEqual" , currentFluxType ) ==0)
+      if (reactionPlug != NULL) {
+          /* LOWERFLUXBOUND */
+          if (FbcReactionPlugin_isSetLowerFluxBound(reactionPlug)) 
           {
-            lbcount=lbcount+1;
-            if (FluxBound_isSetValue(currentFlux))  fbc1lb = FluxBound_getValue(currentFlux);
-            else continue;
-          }  
-          
-          else if(strcmp("lessEqual" , currentFluxType ) ==0)
-          { 
-            upcount=upcount+1;
-            if (FluxBound_isSetValue(currentFlux))  fbc1up = FluxBound_getValue(currentFlux);
-            else continue;
-          }  
-          
-          else if(strcmp("equal" , currentFluxType ) ==0)  
-          {
-            if (FluxBound_isSetValue(currentFlux))
-            {
+              parm = Model_getParameterById(R_ExternalPtrAddr (sbmlmod) ,FbcReactionPlugin_getLowerFluxBound(reactionPlug));
+              //printf("LowerFLUXBOUND: %f \n",  Parameter_getValue(parm));
+              REAL(fbclb)[i] = Parameter_getValue(parm);
               lbcount=lbcount+1;
+          }
+          else{
+              REAL(fbclb)[i] = 0;
+          }      
+          
+          /* UPPERFLUXBOUND*/
+          if (FbcReactionPlugin_isSetUpperFluxBound(reactionPlug)) 
+          {
+              parm = Model_getParameterById(R_ExternalPtrAddr (sbmlmod) ,FbcReactionPlugin_getUpperFluxBound(reactionPlug));
+              //printf("UPPERFLUXBOUND: %f \n",  Parameter_getValue(parm));
+              REAL(fbcup)[i] = Parameter_getValue(parm);
               upcount=upcount+1;
-              fbc1lb = FluxBound_getValue(currentFlux); 
-              fbc1up = FluxBound_getValue(currentFlux);
-            }
-            else continue;
+          }
+          else{
+              REAL(fbcup)[i] = 0;
           }
           
-        }  
-        
-        /* FBC 1 save Bounds */
-        REAL(fbclb)[i] = fbc1lb;
-        REAL(fbcup)[i] = fbc1up;
-        
+          /*FBC 1 read */
+          if (fbcversion==1)
+          {
+              /* Storing FBC1Bounds */
+              double fbc1lb=0;
+              double fbc1up=0;
+              
+              for(int fluxb = 0; fluxb < FbcModelPlugin_getNumFluxBounds(modelPlug); fluxb++)
+              {
+                  FluxBound_t * currentFlux = FbcModelPlugin_getFluxBound(modelPlug,fluxb);
+                  
+                  const char * currentFluxType ;
+                  const char * currentFluxReaction; 
+                  
+                  if (FluxBound_isSetReaction(currentFlux))  currentFluxReaction = FluxBound_getReaction(currentFlux);
+                  else continue;
+                  
+                  if(strcmp(currentFluxReaction , Reaction_getId(relel) ) !=0) continue;
+                  
+                  
+                  if (FluxBound_isSetOperation(currentFlux)) currentFluxType = FluxBound_getOperation(currentFlux);
+                  else continue;  
+                  
+                  
+                  if(strcmp("greaterEqual" , currentFluxType ) ==0)
+                  {
+                      lbcount=lbcount+1;
+                      if (FluxBound_isSetValue(currentFlux))  fbc1lb = FluxBound_getValue(currentFlux);
+                      else continue;
+                  }  
+                  
+                  else if(strcmp("lessEqual" , currentFluxType ) ==0)
+                  { 
+                      upcount=upcount+1;
+                      if (FluxBound_isSetValue(currentFlux))  fbc1up = FluxBound_getValue(currentFlux);
+                      else continue;
+                  }  
+                  
+                  else if(strcmp("equal" , currentFluxType ) ==0)  
+                  {
+                      if (FluxBound_isSetValue(currentFlux))
+                      {
+                          lbcount=lbcount+1;
+                          upcount=upcount+1;
+                          fbc1lb = FluxBound_getValue(currentFlux); 
+                          fbc1up = FluxBound_getValue(currentFlux);
+                      }
+                      else continue;
+                  }
+                  
+              }  
+              
+              /* FBC 1 save Bounds */
+              REAL(fbclb)[i] = fbc1lb;
+              REAL(fbcup)[i] = fbc1up;
+              
+          }
+          
+          
+          /* FBC GENE */
+          if( FbcReactionPlugin_isSetGeneProductAssociation(reactionPlug) ) {
+              GeneProductAssociation_t* gpa = FbcReactionPlugin_getGeneProductAssociation(reactionPlug);
+              FbcAssociation_t* asso= (FbcAssociation_t*) GeneProductAssociation_getAssociation(gpa);
+              SET_STRING_ELT(fbcgene, i, Rf_mkChar(FbcAssociation_toInfix(asso)));
+              //printf("Gene: %s \n",   FbcAssociation_toInfix(asso));
+              genecount=genecount+1;
+          }
+          else {
+              SET_STRING_ELT(fbcgene, i, Rf_mkChar(""));
+          }
+          
+          /* FBC OBJECTIVES*/
+          if (Objreaction != NULL && strcmp(Objreaction , Reaction_getId(relel) )==0)     
+          {
+              
+              REAL(fbcobj)[i] = Objcoeff;
+              objcount=objcount+1;
+          }
+          else{
+              REAL(fbcobj)[i] = 0;
+          }      
+      } else {
+          REAL(fbclb)[i] = 0;
+          REAL(fbcup)[i] = 0;
+          SET_STRING_ELT(fbcgene, i, Rf_mkChar(""));
+          REAL(fbcobj)[i] = 0;
       }
-      
-      
-      /* FBC GENE */
-      if( FbcReactionPlugin_isSetGeneProductAssociation(reactionPlug) ) {
-        GeneProductAssociation_t* gpa = FbcReactionPlugin_getGeneProductAssociation(reactionPlug);
-        FbcAssociation_t* asso= (FbcAssociation_t*) GeneProductAssociation_getAssociation(gpa);
-        SET_STRING_ELT(fbcgene, i, Rf_mkChar(FbcAssociation_toInfix(asso)));
-        //printf("Gene: %s \n",   FbcAssociation_toInfix(asso));
-        genecount=genecount+1;
-      }
-      else {
+#else
+        REAL(fbclb)[i] = 0;
+        REAL(fbcup)[i] = 0;
         SET_STRING_ELT(fbcgene, i, Rf_mkChar(""));
-      }
-      
-      /* FBC OBJECTIVES*/
-      if (Objreaction != NULL && strcmp(Objreaction , Reaction_getId(relel) )==0)     
-      {
-        
-        REAL(fbcobj)[i] = Objcoeff;
-        objcount=objcount+1;
-      }
-      else{
         REAL(fbcobj)[i] = 0;
-      }      
+#endif
       
       
       /* reactants */
@@ -1653,6 +1684,7 @@ void ParseModtoAnno  (SBase_t* comp , char* Mannocopy)
 
 SEXP exportSBML (SEXP version, SEXP level, SEXP FbcLevel, SEXP filename, SEXP sybil_max, SEXP mod_desc, SEXP mod_name, SEXP mod_compart, SEXP met_id, SEXP met_name, SEXP met_comp, SEXP met_form, SEXP met_charge, SEXP react_id, SEXP react_name, SEXP react_rev, SEXP lowbnd, SEXP uppbnd, SEXP obj_coef, SEXP subSys, SEXP subSysGroups, SEXP gpr, SEXP SMatrix, SEXP mod_notes, SEXP mod_anno, SEXP com_notes , SEXP com_anno, SEXP met_notes, SEXP met_anno, SEXP met_bnd , SEXP react_notes, SEXP react_anno, SEXP ex_react, SEXP allgenes)
 {
+#if defined(HAVE_FBC_PLUGIN) && defined(HAVE_GROUPS_PLUGIN)
   //Varaibles from R
   const char* fname = CHAR(STRING_ELT(filename, 0));
   const char* model_desc = CHAR(STRING_ELT(mod_desc, 0));
@@ -2355,11 +2387,38 @@ SEXP exportSBML (SEXP version, SEXP level, SEXP FbcLevel, SEXP filename, SEXP sy
   SEXP out = R_NilValue;
   if (result)out = Rf_ScalarLogical(1);
   else out = Rf_ScalarLogical(0);
+#else
+  SEXP out = Rf_ScalarLogical(0);/* no success */
+#endif
   
   return out;
 }
 
 
+/* -------------------------------------------------------------------------- */
+/* check, if FBC-Plugin is available */
+SEXP isAvailableFbcPlugin() {
+    SEXP out = R_NilValue;
+#ifdef HAVE_FBC_PLUGIN
+    out = Rf_ScalarLogical(1);
+#else
+    out = Rf_ScalarLogical(0);
+#endif
+    return out;
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* check, if Groups-Plugin is available */
+SEXP isAvailableGroupsPlugin() {
+    SEXP out = R_NilValue;
+#ifdef HAVE_GROUPS_PLUGIN
+    out = Rf_ScalarLogical(1);
+#else
+    out = Rf_ScalarLogical(0);
+#endif
+    return out;
+}
 
 
 /* -------------------------------------------------------------------------- */

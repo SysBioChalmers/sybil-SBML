@@ -1,8 +1,8 @@
 Package: sybilSBML
 Type: Package
 Title: SBML Integration in Package 'Sybil'
-Version: 3.0.6
-Date: 2019-07-03
+Version: 3.0.7
+Date: 2019-08-02
 Authors@R: c(person("Mayo", "Roettger", role = "cre", email = "mayo.roettger@hhu.de"),
              person("Gabriel", "Gelius-Dietrich", role = c("aut", "ctb")),
              person(c("C.", "Jonathan"), "Fritzemeier", role = "ctb", email = "clausjonathan.fritzemeier@uni-duesseldorf.de"),
@@ -17,7 +17,7 @@ License: GPL-3 | file LICENSE
 LazyLoad: yes
 Collate: generics.R sbmlPtrClass.R sbmlErrorClass.R sybilSBML.R
         uglyHack.R readSBMLmod.R zzz.R
-Packaged: 2019-07-03 15:45:00 UTC; mayo
+Packaged: 2019-08-02 15:05:20 UTC; mayo
 Author: Mayo Roettger [cre],
   Gabriel Gelius-Dietrich [aut, ctb],
   C. Jonathan Fritzemeier [ctb],

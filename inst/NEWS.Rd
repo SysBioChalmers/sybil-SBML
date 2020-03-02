@@ -6,6 +6,16 @@
 
 \newcommand{\CRANpkg}{\href{https://cran.r-project.org/package=#1}{\pkg{#1}}}
 % ---------------------------------------------------------------------------- %
+\section{Changes in version 3.0.4 - 3.0.7 2019-08-02}{
+  \itemize{
+    \item Maintainer change.
+    \item Changes to be able to build package without libSBML FBC and Groups
+    plugins. In that case, FBC-constraints and groups in the SBML model will
+    be ignored. Added functions \code{isAvailableFBCPlugin} and
+    \code{isAvailableGroupsPlugin}.
+  }
+}
+% ---------------------------------------------------------------------------- %
 \section{Changes in version 3.0.3 2018-01-02}{
   \itemize{
     \item Added support for the groups plugin of SBML. Now the \code{subSys} 

@@ -57,6 +57,8 @@ static const R_CallMethodDef callMethods[] = {
     {"getSBMLReactionsList",       (DL_FUNC) &getSBMLReactionsList,       1},
     {"exportSBML",                 (DL_FUNC) &exportSBML,                 34},
     {"getSBMLFbcversion",          (DL_FUNC) &getSBMLFbcversion,          1},
+    {"isAvailableFbcPlugin",       (DL_FUNC) &isAvailableFbcPlugin,       0},
+    {"isAvailableGroupsPlugin",    (DL_FUNC) &isAvailableGroupsPlugin,    0},
     {NULL, NULL, 0}
 };
 

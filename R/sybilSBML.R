@@ -346,6 +346,16 @@ writeSBML<- function(morg=NULL,level=2,version=4,fbcLevel=0,filename="export.xml
     stop("morg has to be of class modelorg\n")
   }
   
+  # warning, if FBC plugin is missing:
+  if (isAvailableFbcPlugin() == FALSE) {
+    warning("Missing FBC-plugin for libSBML. No SBML output will be written.")
+  }
+
+  # warning, if Groups plugin is missing:
+  if (isAvailableGroupsPlugin() == FALSE) {
+    warning("Missing Groups-plugin for libSBML. No SBML output will be written.")
+  }
+  
   ###right 
   if(level==1)
   { 
@@ -642,4 +652,28 @@ writeSBML<- function(morg=NULL,level=2,version=4,fbcLevel=0,filename="export.xml
   }  
   else  message(paste("Could not write file ",filename,"\n",sep=""), appendLF = FALSE);
   return (success)
+}
+
+
+
+#------------------------------------------------------------------------------#
+
+isAvailableFbcPlugin <- function() {
+
+    avail <- .Call("isAvailableFbcPlugin", PACKAGE = "sybilSBML"
+            )
+
+    return(avail)
+}
+
+
+
+#------------------------------------------------------------------------------#
+
+isAvailableGroupsPlugin <- function() {
+
+    avail <- .Call("isAvailableGroupsPlugin", PACKAGE = "sybilSBML"
+            )
+
+    return(avail)
 }

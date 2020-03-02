@@ -6,7 +6,15 @@
 }
 
 \description{
-  Retrieve list of reactions included in a SBML model
+  Retrieve list of reactions included in a SBML model.
+  
+  If sybilSBML was built with a libSBML version, that was not including the FBC plugin,
+  FBC constraints are ignored. Please make sure that you build sybilSBML with the
+  libSBML version containing the FBC plugin (check out installation details).
+  
+  If sybilSBML was built with a libSBML version, that was not including the Groups plugin,
+  Groups are ignored. Please make sure that you build sybilSBML with the
+  libSBML version containing the Groups plugin (check out installation details).
 }
 \usage{
   getSBMLReactionsList(sbmlm)

@@ -61,11 +61,15 @@
 \details{
   The library \code{libSBML} is used to export a \code{\link[sybil]{modelorg}}
   to a SBML file.
-
+  
+  If sybilSBML was built with a libSBML version, that was not including the FBC plugin
+  and the Groups plugin, the function is not writing an output file and returns FALSE.
+  Please make sure that you build sybilSBML with the libSBML version containing the
+  FBC and Group plugins (check out installation details).
 }
 
 \value{
-  A single boolean value for a successful export .
+  A single boolean value for a successful export.
 }
 
 \references{
