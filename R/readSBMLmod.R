@@ -973,16 +973,15 @@ else {
     
     # if there were fbcgprRules or notes with gpr rules,
     # create reaction x nGene matrix, with TRUE for respective genes for each reaction
-    if (isTRUE(hasNotes) ||  !is.null(fbcgprRules) ) {
+    if (isTRUE(hasNotes) || !is.null(fbcgprRules) ) {
         message("GPR mapping ... ", appendLF = FALSE)
 
         # Vector with all gene names != "":
-        #allGenes <- unique(allGenes)
-        #allGenesTMP <- unique(allGenes)
         allGenesTMP <- unique(unlist(genes))
         temp <- nchar(allGenesTMP)
         allGenes <- allGenesTMP[which(temp != 0)]
-
+        
+        # reaction x nGene matrix initialization with FALSE:
         rxnGeneMat <- Matrix::Matrix(FALSE,
                                      nrow = numreact,
                                      ncol = length(allGenes),
@@ -990,7 +989,7 @@ else {
 
         for (i in 1 : numreact) {
             # if genes list element i has only 1 element and that element is not equal ""
-            if ( (length(genes[[i]] == 1)) && (genes[[i]] != "") ) {
+            if ( (length(genes[[i]] == 1)) && all(genes[[i]] != "") ) {
                 geneInd <- match(genes[[i]], allGenes)# find gene in allGenes
                 # Mark which genes are used in reaction with TRUE
                 rxnGeneMat[i, geneInd] <- TRUE

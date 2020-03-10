@@ -1682,12 +1682,12 @@ void ParseModtoAnno  (SBase_t* comp , char* Mannocopy)
 
 
 
-SEXP exportSBML (SEXP version, SEXP level, SEXP FbcLevel, SEXP filename, SEXP sybil_max, SEXP mod_desc, SEXP mod_name, SEXP mod_compart, SEXP met_id, SEXP met_name, SEXP met_comp, SEXP met_form, SEXP met_charge, SEXP react_id, SEXP react_name, SEXP react_rev, SEXP lowbnd, SEXP uppbnd, SEXP obj_coef, SEXP subSys, SEXP subSysGroups, SEXP gpr, SEXP SMatrix, SEXP mod_notes, SEXP mod_anno, SEXP com_notes , SEXP com_anno, SEXP met_notes, SEXP met_anno, SEXP met_bnd , SEXP react_notes, SEXP react_anno, SEXP ex_react, SEXP allgenes)
+SEXP exportSBML (SEXP version, SEXP level, SEXP FbcLevel, SEXP filename, SEXP sybil_max, SEXP mod_desc, SEXP mod_name, SEXP mod_compart, SEXP met_id, SEXP met_name, SEXP met_comp, SEXP met_form, SEXP met_charge, SEXP react_id, SEXP react_name, SEXP react_rev, SEXP lowbnd, SEXP uppbnd, SEXP obj_coef, SEXP subSys, SEXP subSysGroups, SEXP subSysGroupsNames, SEXP gpr, SEXP SMatrix, SEXP mod_notes, SEXP mod_anno, SEXP com_notes , SEXP com_anno, SEXP met_notes, SEXP met_anno, SEXP met_bnd , SEXP react_notes, SEXP react_anno, SEXP ex_react, SEXP allgenes)
 {
 #if defined(HAVE_FBC_PLUGIN) && defined(HAVE_GROUPS_PLUGIN)
-  //Varaibles from R
+  //Variables from R
   const char* fname = CHAR(STRING_ELT(filename, 0));
-  const char* model_desc = CHAR(STRING_ELT(mod_desc, 0));
+  //unused: const char* model_desc = CHAR(STRING_ELT(mod_desc, 0));
   const char* model_name = CHAR(STRING_ELT(mod_name, 0));
   
   int SBMLlevel = INTEGER(level)[0];
@@ -1698,7 +1698,7 @@ SEXP exportSBML (SEXP version, SEXP level, SEXP FbcLevel, SEXP filename, SEXP sy
   double sybilmin = sybilmax*(-1);
   
   // variable FBC
-  XMLNamespaces_t * fbc;
+  //currently unused: XMLNamespaces_t * fbc;
   SBMLNamespaces_t * sbmlns;
   FluxBound_t * fluxBound;
   Objective_t * objective;
@@ -1712,13 +1712,13 @@ SEXP exportSBML (SEXP version, SEXP level, SEXP FbcLevel, SEXP filename, SEXP sy
   
   
   // Variable inital
-  
-  SBMLDocument_t* sbmlDoc;
+  SBMLDocument_t* sbmlDoc = NULL;
+
   Model_t* model;
   XMLNamespaces_t* xmlns;
   
-  UnitDefinition_t* unitdef;
-  Unit_t* unit;
+  //currently unused: UnitDefinition_t* unitdef;
+  //currently unused: Unit_t* unit;
   
   Species_t *sp;
   Reaction_t* reaction;
@@ -1727,7 +1727,7 @@ SEXP exportSBML (SEXP version, SEXP level, SEXP FbcLevel, SEXP filename, SEXP sy
   KineticLaw_t* kl;
   Parameter_t* para;
   
- // ASTNode_t* flux;
+  // ASTNode_t* flux;
   ASTNode_t* astMath;  
   //ASTNode_t* ast;
   //char* mathXMLString;
@@ -2300,6 +2300,7 @@ SEXP exportSBML (SEXP version, SEXP level, SEXP FbcLevel, SEXP filename, SEXP sy
       
       
   }// ENDE REACTION
+  
   if(SBMLfbcversion == 1)
   {  
     
@@ -2358,30 +2359,31 @@ SEXP exportSBML (SEXP version, SEXP level, SEXP FbcLevel, SEXP filename, SEXP sy
       
     }  
   }
-  
+
   /* add subsystem as groups if fbc is >= 2 */
   if(SBMLfbcversion >= 2){
   	if(!Rf_isNull(subSysGroups)){
-		GroupsModelPlugin_t* groupsPlug = NULL;
+        GroupsModelPlugin_t* groupsPlug = NULL;
   		groupsPlug = (GroupsModelPlugin_t*) SBase_getPlugin((SBase_t *)(model), "groups");
-  		
+ 		
   		for(int i=0; i < Rf_length(subSysGroups); i++){
   			Group_t* newGroup = GroupsModelPlugin_createGroup(groupsPlug);
 			
 			Group_setKindAsString(newGroup, "partonomy");
-			Group_setName(newGroup, CHAR(STRING_ELT(Rf_getAttrib(subSysGroups, R_NamesSymbol), i)));
+            Group_setName(newGroup, CHAR(STRING_ELT(subSysGroupsNames, i)));
 			SBase_setSBOTerm((SBase_t *) newGroup, 0000633);
-  			
+
   			for(int j=0; j < Rf_length(VECTOR_ELT(subSysGroups, i)); j++){
 				Member_t* newMember = Member_create(SBMLlevel, SBMLversion, SBMLgroupsversion);
 				Member_setIdRef(newMember, CHAR(STRING_ELT(VECTOR_ELT(subSysGroups, i), j)));
 				Group_addMember(newGroup, newMember);
   			}
+
   			//GroupsModelPlugin_addGroup(groupsPlug, newGroup);
   		}
   	}
   }
-  
+
   // write SBML file
   int result = writeSBML(sbmlDoc, fname);
   SEXP out = R_NilValue;
@@ -2390,7 +2392,7 @@ SEXP exportSBML (SEXP version, SEXP level, SEXP FbcLevel, SEXP filename, SEXP sy
 #else
   SEXP out = Rf_ScalarLogical(0);/* no success */
 #endif
-  
+  //UNPROTECT(1);
   return out;
 }
 

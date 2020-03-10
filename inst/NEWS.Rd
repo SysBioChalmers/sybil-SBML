@@ -6,15 +6,19 @@
 
 \newcommand{\CRANpkg}{\href{https://cran.r-project.org/package=#1}{\pkg{#1}}}
 % ---------------------------------------------------------------------------- %
-\section{Changes in version 3.0.4 - 3.0.7 2019-08-02}{
+\section{Changes in version 3.0.4 - 3.0.8 2020-03-10}{
   \itemize{
     \item Maintainer change.
     \item Changes to be able to build package without libSBML FBC and Groups
     plugins. In that case, FBC-constraints and groups in the SBML model will
     be ignored. Added functions \code{isAvailableFBCPlugin} and
     \code{isAvailableGroupsPlugin}.
+    \item Corrections for CRAN, where && or || encountered arguments of length > 1.
+    \item Fix for CRAN issue: 'config' variable 'CPP' is deprecated.
+    \item Fix for CRAN issue: too many states (abstraction error?).
   }
 }
+
 % ---------------------------------------------------------------------------- %
 \section{Changes in version 3.0.3 2018-01-02}{
   \itemize{
@@ -23,6 +27,7 @@
     for some newer models.
   }
 }
+
 % ---------------------------------------------------------------------------- %
 \section{Changes in version 3.0.2 2017-10-24}{
   \itemize{

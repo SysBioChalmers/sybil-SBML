@@ -362,15 +362,15 @@ writeSBML<- function(morg=NULL,level=2,version=4,fbcLevel=0,filename="export.xml
     # test if Matrix has no double values
     if( !all( S(morg) == floor(S(morg))) ) warning("Level 1 does not support double values")
     fbcLevel=0
-      if(version != 2)
-      {
-        warning("just Level 1 Version 2 will be supported")
-        version=2
-      }
-  }else if (level==2)
+    if(version != 2)
+    {
+      warning("just Level 1 Version 2 will be supported")
+      version=2
+    }
+  } else if (level==2)
   { 
     fbcLevel=0
-    if(version >5)
+    if(version > 5)
     {
       warning("Level 2 Version 5 will be supported")
       version=5 
@@ -380,16 +380,19 @@ writeSBML<- function(morg=NULL,level=2,version=4,fbcLevel=0,filename="export.xml
       warning("Level 2 Version 1 will be supported")
       version=1 
     }  
-  }
-  else if (level==3)
-  { if(fbcLevel >2)fbcLevel=2
-  if(version != 1)
-  {
-    print("Level 3 Version 1 will be supported")
-    version=1 
-  }
-  
-  }else {
+  } else if (level==3)
+  { 
+    if(fbcLevel > 2)
+    {
+      print("FBC level 2 will be supported")
+      fbcLevel=2
+    }
+    if(version != 1)
+    {
+      print("Level 3 Version 1 will be supported")
+      version=1 
+    }
+  } else {
     stop(" Support just for Level 1,2 and 3 \n")
   }
   
@@ -630,6 +633,7 @@ writeSBML<- function(morg=NULL,level=2,version=4,fbcLevel=0,filename="export.xml
                   as.integer(obj_coef(morg)),
                   as.character(newsubS),
                   subSysGroups,
+                  as.character(names(subSysGroups)),
                   as.character(deformatGene(gpr(morg))),
                   as.numeric(shrinkMatrix(morg,j=1:react_num(morg))),
                   mod_notes,

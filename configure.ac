@@ -1,4 +1,4 @@
-AC_INIT([sybilSBML], [3.0.7], [mayo.roettger@hhu.de])
+AC_INIT([sybilSBML], [3.0.8], [mayo.roettger@hhu.de])
 
 dnl # --------------------------------------------------------------------
 dnl # global (environment) variables
@@ -21,7 +21,7 @@ fi
 
 dnl # GNU R default settings
 CC=`"${R_HOME}/bin/R" CMD config CC`
-CPP=`"${R_HOME}/bin/R" CMD config CPP`
+#CPP=`"${R_HOME}/bin/R" CMD config CPP`
 CFLAGS=`"${R_HOME}/bin/R" CMD config CFLAGS`
 CPPFLAGS=`"${R_HOME}/bin/R" CMD config CPPFLAGS`
 AC_PROG_CC
