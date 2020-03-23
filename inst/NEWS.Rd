@@ -6,7 +6,7 @@
 
 \newcommand{\CRANpkg}{\href{https://cran.r-project.org/package=#1}{\pkg{#1}}}
 % ---------------------------------------------------------------------------- %
-\section{Changes in version 3.0.4 - 3.0.8 2020-03-10}{
+\section{Changes in version 3.0.4 - 3.1.0 2020-03-23}{
   \itemize{
     \item Maintainer change.
     \item Changes to be able to build package without libSBML FBC and Groups

@@ -1,3 +1,0 @@
-PKG_CFLAGS=
-PKG_CPPFLAGS=-I/usr/include -I/usr/local/include -I/usr/include/sbml -I/usr/local/include/sbml
-PKG_LIBS= -L/usr/local/lib -L/usr/lib -L/usr/lib64 -lsbml

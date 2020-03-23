@@ -21,7 +21,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with sybilSBML.  If not, see <http://www.gnu.org/licenses/>.
 */
+#ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif /* HAVE_CONFIG_H */
 
 #include "sybilSBML.h"
 
@@ -397,7 +399,7 @@ SEXP getSBMLFbcversion(SEXP sbmldoc) {
   unsigned int version;
   
   checkDocument(sbmldoc);
-  //hierher
+  
   SBasePlugin_t * modelPlug= NULL;
   modelPlug = SBase_getPlugin((SBase_t *)(R_ExternalPtrAddr(sbmldoc)), "fbc");
   if( modelPlug != NULL) 
@@ -1284,17 +1286,17 @@ SEXP getSBMLReactionsList(SEXP sbmlmod) {
     int objcount=0;
     int annocount=0;
     int notescount=0;
+ 
     
+#ifdef HAVE_FBC_PLUGIN
     /* Help Var for Fbc Objective*/
     double Objcoeff = 0;
     const char* Objreaction = NULL;
     char* objActiv = NULL;
     int fbcversion = 0;
- 
-    
+        
     SBasePlugin_t * modelPlug= NULL;
     
-    #ifdef HAVE_FBC_PLUGIN
     /* FBC OBJECTIV @Ardalan*/
     Objective_t * objective = NULL;
     FluxObjective_t * fluxObjective = NULL;
@@ -2156,147 +2158,148 @@ SEXP exportSBML (SEXP version, SEXP level, SEXP FbcLevel, SEXP filename, SEXP sy
         if( i+1 == INTEGER(ex_react)[k]) 
           isexchange=1;
         
-      int j=0;
-      for (j=0; j<LENGTH(met_id); j++)
+    int j=0;
+    for (j=0; j<LENGTH(met_id); j++)
+    {
+    
+      int hash = LENGTH(met_id) * i + j;
+      if (REAL(SMatrix)[hash] != 0.00 )
       {
         
-        int hash = LENGTH(met_id) * i + j;
-        if (REAL(SMatrix)[hash] != 0.00 )
+        if(REAL(SMatrix)[hash] < 0.00)
         {
+          spr = Reaction_createReactant(reaction);
+          SpeciesReference_setConstant(spr, 1);
+          SpeciesReference_setSpecies(spr,CHAR(STRING_ELT(met_id, j)));
+          SpeciesReference_setStoichiometry(spr, fabs(REAL(SMatrix)[hash]));
           
-          if(REAL(SMatrix)[hash] < 0.00)
+          //is Exchange Reaction
+          if(isexchange==1 && !Rf_isNull(ex_react))
           {
-            spr = Reaction_createReactant(reaction);
-            SpeciesReference_setConstant(spr, 1);
-            SpeciesReference_setSpecies(spr,CHAR(STRING_ELT(met_id, j)));
-            SpeciesReference_setStoichiometry(spr, fabs(REAL(SMatrix)[hash]));
+            /* Create boundary Species */
+            sp = Model_createSpecies(model);
             
-            //is Exchange Reaction
-            if(isexchange==1 && !Rf_isNull(ex_react))
-            {
-              /* Create boundary Species */
-              sp = Model_createSpecies(model);
-              
-              Species_setId(sp, append_strings(CHAR(STRING_ELT(met_id, j)),"BOUNDARY","_") );
-              Species_setName(sp,append_strings(CHAR(STRING_ELT(met_name, j)),"BOUNDARY"," ") );
-              
-              Species_setCompartment(sp,"BOUNDARY");
-              Species_setHasOnlySubstanceUnits(sp, 0);
-              Species_setBoundaryCondition(sp, 1);
-              Species_setConstant(sp, 1);
-              
-              /* Add boundary Species as Product */
-              spr = Reaction_createProduct(reaction);
-              SpeciesReference_setSpecies(spr,append_strings(CHAR(STRING_ELT(met_id, j)),"BOUNDARY","_") );
-              SpeciesReference_setStoichiometry(spr,1);
-              
-              SpeciesReference_setConstant(spr, 1);
-            }
+            Species_setId(sp, append_strings(CHAR(STRING_ELT(met_id, j)),"BOUNDARY","_") );
+            Species_setName(sp,append_strings(CHAR(STRING_ELT(met_name, j)),"BOUNDARY"," ") );
             
+            Species_setCompartment(sp,"BOUNDARY");
+            Species_setHasOnlySubstanceUnits(sp, 0);
+            Species_setBoundaryCondition(sp, 1);
+            Species_setConstant(sp, 1);
             
-          }else{
+            /* Add boundary Species as Product */
             spr = Reaction_createProduct(reaction);
+            SpeciesReference_setSpecies(spr,append_strings(CHAR(STRING_ELT(met_id, j)),"BOUNDARY","_") );
+            SpeciesReference_setStoichiometry(spr,1);
+            
             SpeciesReference_setConstant(spr, 1);
-            SpeciesReference_setSpecies(spr,CHAR(STRING_ELT(met_id, j)));
-            SpeciesReference_setStoichiometry(spr, fabs(REAL(SMatrix)[hash]));  
           }
-          
-        }  
-      }
-      
-      
-      
-      /*Annotation*/
-      if (!Rf_isNull(react_anno) && Rf_length(react_anno) > 1  ) 
-      {  char *Manno   = (char*) CHAR(STRING_ELT(react_anno, i));
-        if((Manno != NULL) && (Manno[0] != '\0' )) 
-        {  
-          SBase_setMetaId((SBase_t*)reaction, CHAR(STRING_ELT(react_id, i)));
-          char Mannocopy[strlen(Manno)+1];
-          strcpy(Mannocopy,Manno);
-          // PARSING
-          ParseModtoAnno((SBase_t*)reaction, Mannocopy);
-          
+            
+            
+        }else{
+          spr = Reaction_createProduct(reaction);
+          SpeciesReference_setConstant(spr, 1);
+          SpeciesReference_setSpecies(spr,CHAR(STRING_ELT(met_id, j)));
+          SpeciesReference_setStoichiometry(spr, fabs(REAL(SMatrix)[hash]));  
         }
-      }
+          
+      }  
+    }
       
       
       
-      /* FBC LEVEL 2 */
-      if(SBMLfbcversion == 2)
+    /*Annotation*/
+    if (!Rf_isNull(react_anno) && Rf_length(react_anno) > 1  ) 
+    {
+      char *Manno   = (char*) CHAR(STRING_ELT(react_anno, i));
+      if((Manno != NULL) && (Manno[0] != '\0' )) 
       {  
-        // Get a SBasePlugin_t object plugged in the reaction object.
+        SBase_setMetaId((SBase_t*)reaction, CHAR(STRING_ELT(react_id, i)));
+        char Mannocopy[strlen(Manno)+1];
+        strcpy(Mannocopy,Manno);
+        // PARSING
+        ParseModtoAnno((SBase_t*)reaction, Mannocopy);
         
-        reactionPlug = SBase_getPlugin((SBase_t *)(reaction), "fbc");
-        
-        const char* para_lb;
-        const char* para_ub;
-        
-        //default Parameter or new one
-        if (lower_bnd[i]<= sybilmin)
-        {
-          para_lb="default_lb";
-        }  
-        else if (lower_bnd[i] == 0)
-        {
-          para_lb="default_0";
-        }  
-        else
-        { //creacte Lower_bound Paramater
-          para = Model_createParameter(model);
-          Parameter_setId(para, append_strings(CHAR(STRING_ELT(react_id, i)),"lower_bound","_"));
-          Parameter_setConstant(para, 1);
-          Parameter_setValue(para, lower_bnd[i]);
-          SBase_setSBOTerm((SBase_t *)para,625);
-          
-          para_lb=append_strings(CHAR(STRING_ELT(react_id, i)),"lower_bound","_");
-          
-        }  
-        
-        if (upper_bnd[i] >= sybilmax)
-        {
-          para_ub="default_ub";
-        }
-        
-        else if (upper_bnd[i] == 0)
-        {
-          para_ub="default_0";
-        }  
-        
-        else
-        {
-          //creacte upper_bound Paramater
-          para = Model_createParameter(model);
-          Parameter_setId(para, append_strings(CHAR(STRING_ELT(react_id, i)),"upper_bound","_"));
-          Parameter_setConstant(para, 1);
-          Parameter_setValue(para, upper_bnd[i]);
-          SBase_setSBOTerm((SBase_t *)para,625);
-          
-          para_ub=append_strings(CHAR(STRING_ELT(react_id, i)),"upper_bound","_");
-        }  
-        
-        // set the flux bounds for this reaction
-        FbcReactionPlugin_setLowerFluxBound(reactionPlug, para_lb);
-        FbcReactionPlugin_setUpperFluxBound(reactionPlug, para_ub);
-        
-        // OBJECTIVES
-        if (INTEGER(obj_coef)[i]!=0)
-        {
-          objective = Objective_create(3, 1, 2);
-          Objective_setId(objective, "obj");
-          Objective_setType(objective, "maximize");
-          
-          fluxObjective = Objective_createFluxObjective(objective);
-          FluxObjective_setReaction(fluxObjective, CHAR(STRING_ELT(react_id, i)));
-          FluxObjective_setCoefficient(fluxObjective, INTEGER(obj_coef)[i]);
-          
-          FbcModelPlugin_addObjective(modelPlug, objective);
-          
-          // mark obj1 as active objective
-          FbcModelPlugin_setActiveObjectiveId(modelPlug, "obj");
-          
-        }  
       }
+    }
+    
+    
+    
+    /* FBC LEVEL 2 */
+    if(SBMLfbcversion == 2)
+    {  
+      // Get a SBasePlugin_t object plugged in the reaction object.
+      
+      reactionPlug = SBase_getPlugin((SBase_t *)(reaction), "fbc");
+      
+      const char* para_lb;
+      const char* para_ub;
+      
+      //default Parameter or new one
+      if (lower_bnd[i]<= sybilmin)
+      {
+        para_lb="default_lb";
+      }  
+      else if (lower_bnd[i] == 0)
+      {
+        para_lb="default_0";
+      }  
+      else
+      { //creacte Lower_bound Paramater
+        para = Model_createParameter(model);
+        Parameter_setId(para, append_strings(CHAR(STRING_ELT(react_id, i)),"lower_bound","_"));
+        Parameter_setConstant(para, 1);
+        Parameter_setValue(para, lower_bnd[i]);
+        SBase_setSBOTerm((SBase_t *)para,625);
+        
+        para_lb=append_strings(CHAR(STRING_ELT(react_id, i)),"lower_bound","_");
+        
+      }  
+      
+      if (upper_bnd[i] >= sybilmax)
+      {
+        para_ub="default_ub";
+      }
+      
+      else if (upper_bnd[i] == 0)
+      {
+        para_ub="default_0";
+      }  
+      
+      else
+      {
+        //creacte upper_bound Paramater
+        para = Model_createParameter(model);
+        Parameter_setId(para, append_strings(CHAR(STRING_ELT(react_id, i)),"upper_bound","_"));
+        Parameter_setConstant(para, 1);
+        Parameter_setValue(para, upper_bnd[i]);
+        SBase_setSBOTerm((SBase_t *)para,625);
+        
+        para_ub=append_strings(CHAR(STRING_ELT(react_id, i)),"upper_bound","_");
+      }  
+      
+      // set the flux bounds for this reaction
+      FbcReactionPlugin_setLowerFluxBound(reactionPlug, para_lb);
+      FbcReactionPlugin_setUpperFluxBound(reactionPlug, para_ub);
+      
+      // OBJECTIVES
+      if (INTEGER(obj_coef)[i]!=0)
+      {
+        objective = Objective_create(3, 1, 2);
+        Objective_setId(objective, "obj");
+        Objective_setType(objective, "maximize");
+        
+        fluxObjective = Objective_createFluxObjective(objective);
+        FluxObjective_setReaction(fluxObjective, CHAR(STRING_ELT(react_id, i)));
+        FluxObjective_setCoefficient(fluxObjective, INTEGER(obj_coef)[i]);
+        
+        FbcModelPlugin_addObjective(modelPlug, objective);
+        
+        // mark obj1 as active objective
+        FbcModelPlugin_setActiveObjectiveId(modelPlug, "obj");
+        
+      }  
+    }
       
       
   }// ENDE REACTION

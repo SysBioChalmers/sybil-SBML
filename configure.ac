@@ -1,4 +1,10 @@
-AC_INIT([sybilSBML], [3.0.8], [mayo.roettger@hhu.de])
+AC_INIT([sybilSBML], [3.1.0], [mayo.roettger@hhu.de])
+
+dnl # --------------------------------------------------------------------
+dnl # template config.h.in
+dnl # --------------------------------------------------------------------
+AC_CONFIG_HEADERS([src/config.h])
+
 
 dnl # --------------------------------------------------------------------
 dnl # global (environment) variables
@@ -26,13 +32,6 @@ CFLAGS=`"${R_HOME}/bin/R" CMD config CFLAGS`
 CPPFLAGS=`"${R_HOME}/bin/R" CMD config CPPFLAGS`
 AC_PROG_CC
 AC_PROG_CPP
-
-
-dnl # --------------------------------------------------------------------
-dnl # template config.h.in
-dnl # --------------------------------------------------------------------
-
-AC_CONFIG_HEADERS([src/config.h])
 
 
 dnl # --------------------------------------------------------------------
@@ -280,6 +279,21 @@ dnl # --------------------------------------------------------------------
 AC_SUBST(PKG_CFLAGS)
 AC_SUBST(PKG_LIBS)
 AC_SUBST(PKG_CPPFLAGS)
-AC_OUTPUT(src/Makevars)
+AC_SUBST(HAVE_GROUPS_PLUGIN)
+AC_SUBST(HAVE_FBC_PLUGIN)
+
+AC_CONFIG_FILES([src/Makevars.tmp:src/Makevars.in], [
+    if test -f src/Makevars && cmp -s src/Makevars.tmp src/Makevars; then
+      AC_MSG_NOTICE([creating src/Makevars])
+      AC_MSG_NOTICE([src/Makevars is unchanged])
+      rm src/Makevars.tmp
+    else
+      AC_MSG_NOTICE([creating src/Makevars])
+      mv src/Makevars.tmp src/Makevars
+    fi
+  ]
+)
+
+AC_OUTPUT
 
 exit 0

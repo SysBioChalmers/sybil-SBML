@@ -80,4 +80,7 @@ all: $(SHLIB)
 with the environment variable LIB_SBML being the installation directory
 of libSBML.
 
+If you want to build the package with libSBML FBC and Groups plugins functionality,
+please exchange the the first row in the Makevars.win file in src/ into
 
+PKG_CPPFLAGS= -D_R_=1 -DUSE_R=1 -DHAVE_FBC_PLUGIN=1 -DHAVE_GROUPS_PLUGIN=1 -I"$(LIB_SBML)/include"
