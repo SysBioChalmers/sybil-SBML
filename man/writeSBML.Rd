@@ -116,6 +116,7 @@
   file <- file.path(dir, "ecoli_core_model.xml")
   mod  <- readSBMLmod(file, bndCond = FALSE)
   writeSBML(mod,level=3,version=1,fbcLevel=2)
+  unlink("export.xml") # remove created example file
 }
 
 \keyword{ IO }

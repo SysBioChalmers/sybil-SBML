@@ -2319,7 +2319,7 @@ SEXP exportSBML (SEXP version, SEXP level, SEXP FbcLevel, SEXP filename, SEXP sy
       const double *lower_bnd = REAL(lowbnd);
       const double *upper_bnd = REAL(uppbnd);
       
-      char buf[21]; // changed from 20 to 21 to avoid buffer overflow
+      char buf[24]; // 11 + 10 + 1 (signed, even if not used here) + nul = 23 (24 to be absolutely safe)
       // FBC1 FLUXBOUNDS
       sprintf(buf, "LOWER_BOUND%d", i);
       if (INTEGER(obj_coef)[i] != 1)
