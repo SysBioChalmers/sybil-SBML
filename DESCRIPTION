@@ -1,6 +1,6 @@
 Package: sybilSBML
 Type: Package
-Title: SBML Integration in Package 'Sybil'
+Title: 'SBML' Integration in Package 'Sybil'
 Version: 3.1.1
 Date: 2020-03-25
 Authors@R: c(person("Mayo", "Roettger", role = "cre", email = "mayo.roettger@hhu.de"),
@@ -12,7 +12,7 @@ Maintainer: Mayo Roettger <mayo.roettger@hhu.de>
 Depends: R (>= 2.14.2), Matrix, sybil (>= 2.0.0)
 SystemRequirements: libSBML-core-plus-packages (>= 5.16)
 Imports: methods
-Description: 'SBML' (Systems Biology Markup Language) with FBC (Flux Balance Constraints) integration in 'sybil'. Many constraint based metabolic models are published in 'SBML' format ('*.xml'). Herewith is the ability to read, write, and check 'SBML' files in 'sybil' provided.
+Description: 'SBML' (Systems Biology Markup Language) with 'FBC' (Flux Balance Constraints) integration in 'sybil'. Many constraint based metabolic models are published in 'SBML' format ('*.xml'). Herewith is the ability to read, write, and check 'SBML' files in 'sybil' provided.
 License: GPL-3 | file LICENSE
 LazyLoad: yes
 Collate: generics.R sbmlPtrClass.R sbmlErrorClass.R sybilSBML.R
