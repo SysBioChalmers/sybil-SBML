@@ -1,4 +1,4 @@
-AC_INIT([sybilSBML], [3.1.1], [mayo.roettger@hhu.de])
+AC_INIT([sybilSBML], [3.1.2], [mayo.roettger@hhu.de])
 
 dnl # --------------------------------------------------------------------
 dnl # template config.h.in

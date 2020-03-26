@@ -6,7 +6,7 @@
 
 \newcommand{\CRANpkg}{\href{https://cran.r-project.org/package=#1}{\pkg{#1}}}
 % ---------------------------------------------------------------------------- %
-\section{Changes in version 3.0.4 - 3.1.1 2020-03-24}{
+\section{Changes in version 3.0.4 - 3.1.2 2020-03-26}{
   \itemize{
     \item Maintainer change.
     \item Changes to be able to build package without libSBML FBC and Groups
@@ -18,6 +18,8 @@
     \item Fix for CRAN issue: too many states (abstraction error?).
     \item Fix for CRAN issue, where a terminating nul character may be written
     past the end of the destination in function \code{exportSBML}.
+    \item Fix for CRAN issue, where example file was written into user's home
+    filespace.
   }
 }
 

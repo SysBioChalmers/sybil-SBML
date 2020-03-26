@@ -115,8 +115,8 @@
   dir  <- system.file(package = "sybilSBML", "extdata")
   file <- file.path(dir, "ecoli_core_model.xml")
   mod  <- readSBMLmod(file, bndCond = FALSE)
-  writeSBML(mod,level=3,version=1,fbcLevel=2)
-  unlink("export.xml") # remove created example file
+  # write SBML file to tempdir():
+  writeSBML(mod,level=3,version=1,fbcLevel=2,filename=file.path(tempdir(), "export.xml"))
 }
 
 \keyword{ IO }
